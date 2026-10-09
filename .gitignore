@@ -11,6 +11,12 @@ storage/framework/cache/data/
 storage/framework/sessions/
 storage/framework/views/
 immagov/backend/vendor/
+immagov/backend/node_modules/
+immagov/backend/.env
 immagov/frontend/node_modules/
+immagov/frontend/build/
 sipim/backend/vendor/
+sipim/backend/node_modules/
+sipim/backend/.env
 sipim/frontend/node_modules/
+sipim/frontend/build/
