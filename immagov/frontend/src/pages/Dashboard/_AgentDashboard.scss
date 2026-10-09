@@ -1,0 +1,567 @@
+// Tableau de bord du rôle Agent (préfixe agent-, sans effet sur les autres pages)
+$ag-green: #017a60;
+$ag-green-dark: #014d3c;
+$ag-green-soft: #e6f4ee;
+$ag-ink: #14201c;
+$ag-text: #33423d;
+$ag-muted: #5b6b66;
+$ag-border: #dce3e0;
+$ag-line: #eef2f0;
+$ag-amber-bg: #fff4d6;
+$ag-amber: #6b4e00;
+$ag-red-bg: #fdecea;
+$ag-red: #8a1c12;
+$ag-font: "IBM Plex Sans", "Inter", system-ui, sans-serif;
+
+.agent-dash {
+  &,
+  * {
+    font-family: $ag-font;
+  }
+  width: 100%;
+  max-width: 1280px;
+  margin: 2em auto 1em;
+  padding: 0 24px 48px;
+  box-sizing: border-box;
+  color: $ag-ink;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  @include phone() {
+    padding: 0 12px 32px;
+  }
+  h1,
+  h2 {
+    font-family: $ag-font;
+  }
+  a {
+    color: #016b54;
+    &:hover {
+      color: $ag-green-dark;
+    }
+  }
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  &__title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  &__sub {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: $ag-muted;
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+  &__layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  &__main {
+    flex: 999 1 560px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  &__side {
+    flex: 1 1 300px;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    @include tablet() {
+      max-width: none;
+    }
+  }
+}
+
+.agent-muted {
+  margin: 0;
+  font-size: 12px;
+  color: $ag-muted;
+}
+.agent-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+  font-size: 13px;
+}
+.agent-req,
+.agent-error {
+  color: #b42318;
+}
+.agent-error {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+// Boutons et liens-boutons
+.agent-dash .agent-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  &--primary {
+    border: none;
+    background: $ag-green;
+    color: #fff;
+    &:hover {
+      background: $ag-green-dark;
+      color: #fff;
+    }
+  }
+  &--outline {
+    align-self: flex-start;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    border: 1px solid $ag-green;
+    background: #fff;
+    color: #016b54;
+    &:hover {
+      background: $ag-green-soft;
+    }
+  }
+  &--block {
+    width: 100%;
+    height: 40px;
+  }
+}
+
+// Indicateurs
+.agent-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.agent-dash button.agent-kpi {
+  text-align: left;
+  background: #fff;
+  color: $ag-ink;
+  border: 1px solid $ag-border;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 400;
+  &:hover {
+    border-color: #a9b8b2;
+    background: #fff;
+    color: $ag-ink;
+  }
+  &.is-active {
+    border-color: $ag-green;
+    box-shadow: 0 0 0 1px $ag-green;
+  }
+}
+.agent-kpi {
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+  &__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: $ag-text;
+  }
+  &__icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    &--neutre {
+      background: $ag-line;
+      color: $ag-text;
+    }
+    &--ambre {
+      background: $ag-amber-bg;
+      color: $ag-amber;
+    }
+    &--vert {
+      background: $ag-green-soft;
+      color: $ag-green-dark;
+    }
+    &--rouge {
+      background: $ag-red-bg;
+      color: $ag-red;
+    }
+  }
+  &__value {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  &__note {
+    font-size: 12px;
+    color: $ag-muted;
+  }
+}
+
+// Cartes
+.agent-card {
+  background: #fff;
+  border: 1px solid $ag-border;
+  border-radius: 12px;
+  &__head {
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    &--bordered {
+      border-bottom: 1px solid #e4eae7;
+    }
+  }
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  &__foot {
+    padding: 12px 24px;
+    border-top: 1px solid #e4eae7;
+    display: flex;
+    justify-content: flex-end;
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+// Graphique : barres en vert, arrondi 4px en haut, grille discrète
+.agent-chart {
+  padding-bottom: 18px;
+  .agent-card__head {
+    padding-bottom: 8px;
+  }
+  &__plot {
+    position: relative;
+    height: 200px;
+    margin: 8px 24px 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    border-bottom: 1px solid #c9d3cf;
+  }
+  &__grid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed #e4eae7;
+  }
+  &__col {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    outline: none;
+    &:focus-visible .agent-chart__bar {
+      outline: 2px solid $ag-green-dark;
+      outline-offset: 2px;
+    }
+  }
+  &__bar {
+    width: 100%;
+    max-width: 44px;
+    border-radius: 4px 4px 0 0;
+    background: $ag-green;
+    transition: background 0.15s ease;
+    &.is-active {
+      background: $ag-green-dark;
+    }
+  }
+  &__value {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  &__tip {
+    position: absolute;
+    z-index: 2;
+    background: $ag-ink;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    strong {
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+  }
+  &__labels {
+    display: flex;
+    gap: 16px;
+    margin: 8px 24px 0;
+    span {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: $ag-muted;
+      text-transform: capitalize;
+    }
+  }
+}
+
+// Filtres et tableau
+.agent-filtres {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.agent-dash button.agent-filtre {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #cbd5d1;
+  background: #fff;
+  color: $ag-text;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: #f3f6f5;
+    color: $ag-text;
+  }
+  &.is-active {
+    border-color: $ag-green;
+    background: $ag-green-soft;
+    color: $ag-green-dark;
+    font-weight: 600;
+  }
+}
+.agent-table-wrap {
+  overflow-x: auto;
+}
+.agent-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 13px;
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 500;
+    color: #4f5f5a;
+  }
+  td {
+    padding: 12px;
+    border-top: 1px solid $ag-line;
+    color: $ag-text;
+    vertical-align: middle;
+  }
+  th:first-child,
+  td:first-child {
+    padding-left: 24px;
+  }
+  th:last-child,
+  td:last-child {
+    padding-right: 24px;
+  }
+  .is-right {
+    text-align: right;
+  }
+  tbody tr:hover {
+    background: #f6f8f7;
+  }
+}
+.agent-cell-main {
+  display: block;
+  font-weight: 500;
+  color: $ag-ink;
+}
+.agent-empty {
+  text-align: center;
+  color: $ag-muted;
+  padding: 24px !important;
+}
+
+// Statuts : icône + libellé
+.agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  &--valide {
+    background: $ag-green-soft;
+    color: $ag-green-dark;
+  }
+  &--attente {
+    background: $ag-amber-bg;
+    color: $ag-amber;
+  }
+  &--rejete {
+    background: $ag-red-bg;
+    color: $ag-red;
+  }
+}
+
+// Colonne de droite
+.agent-side-card {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  &--alert {
+    border-color: #f1c6c0;
+  }
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+.agent-count {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: $ag-red-bg;
+  color: #b42318;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+// Liste des dossiers rejetés : défile au-delà de quelques dossiers
+.agent-rejets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 560px;
+  overflow-y: auto;
+}
+// Chaque dossier rejeté est un lien vers sa correction
+.agent-dash a.agent-rejet {
+  color: $ag-ink;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  &:hover,
+  &:focus-visible {
+    color: $ag-ink;
+    border-color: $ag-green;
+    background: #f6faf8;
+  }
+  &:focus-visible {
+    outline: 2px solid $ag-green;
+    outline-offset: 2px;
+  }
+}
+.agent-rejet__action {
+  font-size: 13px;
+  font-weight: 600;
+  color: #016b54;
+}
+.agent-dash .agent-btn.agent-btn--table {
+  height: 32px;
+  padding: 0 12px;
+}
+.agent-lien-table {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agent-rejet {
+  border: 1px solid #e4eae7;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  &__motif {
+    margin: 0;
+    font-size: 13px;
+    color: $ag-red;
+    background: #fdf3f1;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+}
+.agent-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $ag-text;
+  > * {
+    margin-top: 0; // annule la règle globale « label > * »
+  }
+}
+.agent-attente {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid $ag-line;
+}
+.agent-delai {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: $ag-line;
+  color: $ag-text;
+  &--long {
+    background: $ag-amber-bg;
+    color: $ag-amber;
+  }
+}
+
+// Type d'opération rejetée (mutation, réforme)
+.agent-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eef3f1;
+  color: #33423d;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}

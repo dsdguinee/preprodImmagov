@@ -1,0 +1,200 @@
+// Composants de formulaire réutilisables — palette de _colors.scss
+$fk-line: rgba($dark-grey, .32);
+$fk-radius: 5px;
+
+// App.scss applique « label > * { margin-top; display: block } » : neutralisé dans ces composants
+.fk-tile > *,
+.fk-seg label > *,
+.fk-toggle-text > *,
+.fk-switch > * { margin-top: 0; }
+
+.fk-section {
+  background: $lighter-grey;
+  border: 1px solid transparent;
+  border-radius: $fk-radius;
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  &.complete { border-color: rgba($green, .35); }
+  .fk-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    h2 { font-size: 16px; margin: 0; }
+  }
+  .fk-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    background: $darker-grey;
+    color: $white;
+    flex: none;
+  }
+  &.complete .fk-num { background: $green; }
+  .fk-state { margin-left: auto; font-size: 12px; color: $dark-grey; }
+  &.complete .fk-state { color: $green; font-weight: 600; }
+}
+
+.fk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  .full { grid-column: 1 / -1; }
+  @include phone() { grid-template-columns: 1fr; }
+}
+
+.fk-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  label { font-size: 12.5px; font-weight: 500; color: $darker-grey; }
+  input, select {
+    font: inherit;
+    font-size: 14px;
+    color: $darker-grey;
+    background: $white;
+    border: 1px solid $fk-line;
+    border-radius: $fk-radius;
+    padding: 9px 11px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    &:focus { outline: 2px solid $primary; outline-offset: -1px; border-color: $primary; }
+    &[aria-invalid="true"] { border-color: $red; }
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+}
+.fk-label { font-size: 12.5px; font-weight: 500; color: $darker-grey; }
+.fk-hint { font-size: 12px; color: $dark-grey; }
+.fk-error { font-size: 12px; color: $red; font-weight: 500; }
+
+.fk-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.fk-tile {
+  position: relative;
+  input { position: absolute; opacity: 0; pointer-events: none; }
+  span {
+    display: grid;
+    gap: 2px;
+    height: 100%;
+    background: $white;
+    border: 1.5px solid $fk-line;
+    border-radius: $fk-radius;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $darker-grey;
+    small { font-weight: 400; color: $dark-grey; font-size: 12px; }
+  }
+  input:checked + span { border-color: $primary; background: rgba($primary, .1); }
+  input:focus-visible + span { outline: 2px solid $primary; outline-offset: 2px; }
+  &.disabled span { opacity: .45; cursor: not-allowed; }
+}
+
+.fk-seg-wrap { display: grid; gap: 6px; align-content: start; }
+.fk-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-self: start;
+  background: $white;
+  border: 1px solid $fk-line;
+  border-radius: $fk-radius;
+  padding: 3px;
+  label { position: relative; }
+  input { position: absolute; opacity: 0; pointer-events: none; }
+  span { display: block; padding: 7px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; color: $darker-grey; }
+  input:checked + span { background: $black; color: $white; font-weight: 600; }
+  input:focus-visible + span { outline: 2px solid $primary; }
+}
+
+.fk-toggle {
+  background: $white;
+  border: 1.5px solid $fk-line;
+  border-radius: $fk-radius;
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+  &.on { border-color: $primary; }
+  &.disabled { opacity: .6; }
+  .fk-toggle-top { display: flex; align-items: center; gap: 12px; }
+  .fk-toggle-text {
+    display: grid;
+    gap: 1px;
+    cursor: pointer;
+    b { font-size: 14px; color: $darker-grey; }
+    span { font-size: 12px; color: $dark-grey; font-weight: 400; }
+  }
+  .fk-amount {
+    margin-left: auto;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    &.off { color: $dark-grey; font-weight: 500; }
+  }
+  .fk-toggle-body { display: grid; gap: 10px; }
+}
+.fk-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: none;
+  input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  i { position: absolute; inset: 0; background: $fk-line; border-radius: 11px; transition: background .15s; }
+  i::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $white;
+    transition: transform .15s;
+  }
+  input:checked + i { background: $primary; }
+  input:checked + i::after { transform: translateX(16px); }
+  input:focus-visible + i { outline: 2px solid $primary; outline-offset: 2px; }
+  input:disabled { cursor: not-allowed; }
+}
+
+.fk-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: $fk-radius;
+  padding: 11px 16px;
+  cursor: pointer;
+  background: $black;
+  color: $white;
+  &.primary { background: $primary !important; }
+  &.ghost { background: transparent; color: $darker-grey; border-color: $fk-line; }
+  &:disabled { background: $dark-grey !important; cursor: not-allowed; }
+}
+
+.fk-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba($darker-grey, .45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+  .fk-dialog-box { background: $white; border-radius: 8px; max-width: 440px; width: 100%; padding: 20px; display: grid; gap: 12px; }
+  h3 { font-size: 17px; margin: 0; }
+  .fk-dialog-body { font-size: 13.5px; color: $darker-grey; }
+  .fk-dialog-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-switch i, .fk-switch i::after { transition: none; }
+}

@@ -1,0 +1,16 @@
+.input-group2{
+  display: grid;
+  grid-template-columns: 350px;
+  grid-template-rows: 60px;
+   /* margin-bottom: 1.5em;  */
+  padding-bottom: 1.5em;
+  border-bottom: 0px solid rgba(0, 0, 0, 0.069);
+}
+.buttons {
+    padding-top: 2em;
+    border-top: 1px solid rgba(0, 0, 0, 0.073);
+    margin-top: 2em;
+  }
+input[type="text"]{
+    background-color: #DFE7F3;
+}

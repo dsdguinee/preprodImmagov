@@ -1,0 +1,131 @@
+// Historique d'utilisation d'un véhicule (frise verticale, la plus récente en haut)
+.hist {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 13px;
+  color: #33423d;
+}
+.hist-vide {
+  margin: 0;
+  font-size: 13px;
+  color: #5b6b66;
+}
+.hist-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hist-item {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 0 0 18px 0;
+  // trait vertical entre deux périodes
+  &:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 16px;
+    bottom: 0;
+    width: 2px;
+    background: #dce3e0;
+  }
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+.hist-point {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: 999px;
+  border: 2px solid #a9b8b2;
+  background: #fff;
+  box-sizing: border-box;
+}
+.hist-item.is-en-cours .hist-point {
+  border-color: #017a60;
+  background: #017a60;
+}
+.hist-contenu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.hist-entete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  strong {
+    font-size: 14px;
+    color: #14201c;
+  }
+}
+.hist-ligne {
+  color: #33423d;
+}
+.hist-dates {
+  color: #5b6b66;
+  font-size: 12px;
+}
+.hist-meta {
+  color: #5b6b66;
+  font-size: 12px;
+}
+.hist-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+}
+.hist-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eef2f0;
+  color: #33423d;
+  &--mutation {
+    background: #e8f1fb;
+    color: #0b4a8b;
+  }
+  &--reforme {
+    background: #f3eefb;
+    color: #4f2f8a;
+  }
+  &--actuel {
+    background: #e6f4ee;
+    color: #014d3c;
+  }
+  &--attente {
+    background: #fff4d6;
+    color: #6b4e00;
+  }
+  &--rejete {
+    background: #fdecea;
+    color: #8a1c12;
+  }
+}
+.hist-demandes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e4eae7;
+}
+.hist-sous-titre {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4f5f5a;
+}
+.hist-demande {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hist-rejet {
+  color: #8a1c12;
+}

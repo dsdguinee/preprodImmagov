@@ -1,0 +1,32 @@
+.menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 150%;
+    padding: 0.5em 1em;
+    width: 220px;
+    z-index: 2;
+    background-color: #fff;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    div {
+        padding: 0.5em 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+        &:last-child {
+            border-bottom: none;
+        }
+        p {
+            margin: 0.15em 0;
+            &.link {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+            &.name {
+                font-size: 1rem;
+                font-weight: 700;
+                margin-bottom: 0.3em;
+            }
+        }
+        span {
+            color: rgba(0, 0, 0, 0.53);
+        }
+    }
+}

@@ -1,0 +1,105 @@
+// Champ de saisie (composant Input)
+input.ui-input,
+textarea.ui-input {
+  width: 100%;
+  height: 36px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid #cbd5d1;
+  border-radius: 8px;
+  background: #fff;
+  color: #14201c;
+  font-size: 14px;
+  font-weight: 400;
+  &::placeholder {
+    color: #8a9893;
+  }
+  &:hover:not(:focus):not([readonly]):not(:disabled) {
+    border-color: #a9b8b2;
+  }
+  &:focus {
+    outline: 2px solid #017a60;
+    outline-offset: 1px;
+    border-color: #017a60;
+  }
+  &[readonly],
+  &:disabled {
+    background: #f3f6f5;
+    color: #33423d;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+  &.is-invalid {
+    border-color: #b42318;
+    &:focus {
+      outline-color: #b42318;
+    }
+  }
+  &.ui-input--mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+    letter-spacing: 0.02em;
+  }
+}
+
+// Champ avec unité (prefix / suffix) : la bordure est portée par le groupe
+.ui-input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 36px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5d1;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  &:hover:not(.is-readonly) {
+    border-color: #a9b8b2;
+  }
+  &:focus-within {
+    outline: 2px solid #017a60;
+    outline-offset: 1px;
+    border-color: #017a60;
+  }
+  &.is-invalid {
+    border-color: #b42318;
+    &:focus-within {
+      outline-color: #b42318;
+    }
+  }
+  &.is-readonly {
+    background: #f3f6f5;
+  }
+  input.ui-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    &:focus {
+      outline: none;
+    }
+  }
+  &__addon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: #f3f6f5;
+    color: #5b6b66;
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+// Zone de texte (adresse…) : même apparence, hauteur libre
+textarea.ui-input {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}

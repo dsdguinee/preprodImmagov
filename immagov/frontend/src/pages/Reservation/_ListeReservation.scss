@@ -1,0 +1,25 @@
+.liste-ministere {
+    width: 70%;
+    margin: 2em auto;
+    @include tablet() {
+        width: 90%;
+    }
+    .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        @include phone() {
+            flex-direction: column;
+            gap: 1em;
+        }
+        button {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            // span {
+            //     font-size: 1.1rem;
+            //     transform: translateY(3px);
+            // }
+        }
+    }
+}

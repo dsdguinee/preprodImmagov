@@ -1,0 +1,110 @@
+.login-page {
+  display: flex;
+  .left,
+  .right {
+    flex: 1;
+    height: 100vh;
+  }
+  .left {
+    background-color: #363636;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2em;
+    @media screen and (max-width: 750px) {
+      display: none;
+    }
+    .onboarding-image {
+      width: 400px;
+      @include tablet() {
+        width: 300px;
+      }
+    }
+    .onboarding-text {
+      color: $white;
+      width: 70%;
+      h3 {
+        margin-bottom: 1em;
+      }
+      p {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.899);
+        @include tablet() {
+          font-size: 0.7rem;
+        }
+      }
+    }
+    .slide-btns {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      .btn {
+        background-color: $dark-grey;
+        border-radius: 50%;
+        width: 7px;
+        height: 7px;
+        cursor: pointer;
+        &.btn-active {
+          height: 9px;
+          width: 9px;
+          background-color: #fff;
+        }
+      }
+    }
+  }
+  .right {
+    .wrapper {
+      height: 100%;
+      width: 55%;
+      @include phone() {
+        width: 80%;
+      }
+      padding: 3em 0;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      p {
+        font-size: 0.8rem;
+        color: $dark-grey;
+        @include tablet() {
+          font-size: 0.7rem;
+        }
+      }
+      .logo {
+        width: 200px;
+        margin-inline: auto;
+        img {
+          width: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+      .logo-label {
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        text-align: center;
+        // font-weight: 500;
+      }
+      .header {
+        padding-bottom: 1em;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+        h3 {
+          margin-bottom: 1em;
+        }
+      }
+      form {
+        margin-top: 2em;
+        input {
+          border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+        button {
+          margin-top: 2em;
+          width: 100%;
+        }
+      }
+    }
+  }
+}

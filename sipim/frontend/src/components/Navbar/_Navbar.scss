@@ -1,0 +1,128 @@
+.navbar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0.5em 0;
+  .navbar-wrapper {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    a, li {
+      &:hover {
+        color: $primary;
+      }
+    }
+    ul {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.1em;
+      @include tablet_landscape() {
+        display: none;
+      }
+      li {
+        padding: 0.8em 1em;
+        font-size: $text-sm;
+        font-weight: 500;
+        cursor: pointer;
+        position: relative;
+        // &::after {
+        //   transition: all 0.3s ease;
+        //   content: "";
+        //   position: absolute;
+        //   background-color: $light-grey;
+        //   top: 110%;
+        //   left: 0;
+        //   width: 0;
+        //   height: 2px;
+        // }
+        // &:hover {
+        //   &::after {
+        //     width: 100%;
+        //   }
+        // }
+      }
+      .link-with-dropdown {
+        position: relative;
+        &:hover {
+          .dropdown-menu {
+            // opacity: 1;
+            display: block;
+            transform: translateY(0);
+          }
+        }
+        .dropdown-menu {
+          position: absolute;
+          padding: 0.6em 0.5em;
+          top: calc(100%);
+          // opacity: 0;
+          // transition: all 0.2s ease;
+          display: none;
+          transform: translateY(-15%);
+          width: 190px;
+          box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+          background-color: $white;
+          li {
+            padding: 0.2em 0.5em;
+            &:hover {
+              color: $primary;
+            }
+          }
+        }
+      }
+    }
+    .logo-and-menu {
+      display: flex;
+      align-items: center;
+      .menu-icon {
+        display: none;
+        position: relative;
+        z-index: 4;
+        font-size: 1.8rem;
+        height: 1em;
+        margin-right: 0.2em;
+        @include tablet_landscape() {
+          display: block;
+        }
+      }
+      .logo {
+        width: 70px;
+        img{
+          width: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+    }
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 2em;
+    }
+    .right {
+      position: relative;
+      .user {
+        display: flex;
+        align-items: center;
+        gap: 1em;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        .profile-image {
+          width: 25px;
+          height: 25px;
+          overflow: hidden;
+        }
+        .arrow-icon {
+          margin: 0 !important;
+          padding: 0;
+          transform: translateY(3px);
+          transition: transform 0.2s ease;
+          &.rotate {
+            transform: rotate(180deg);
+          }
+        }
+      }
+    }
+  }
+}

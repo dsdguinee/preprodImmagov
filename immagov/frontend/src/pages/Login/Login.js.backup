@@ -1,0 +1,126 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+//composant permettant d'afficher les erreurs
+import { useForm } from "react-hook-form";
+//composant permettant d'afficher les erreurs 
+import Erreurs from "../../components/erreurs/Erreurs";
+import { getTokent, login, setToken } from "../../services/auth.service";
+
+import logo from "../../assets/logo.png";
+import armoiries from "../../assets/armoiries.png";
+import star from "../../assets/Star1.svg";
+import ellipse1 from "../../assets/Ellipse1.svg";
+import ellipse2 from "../../assets/Ellipse2.svg";
+import line1 from "../../assets/Line1.svg";
+import polygon1 from "../../assets/Polygon1.svg";
+import rectangle1 from "../../assets/Rectangle1.svg";
+
+const Login = () => {
+  document.title='Connexion';
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token')
+
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const [credential,setCredential] = useState({});
+  const [backerreur,setBackerreur] = useState({});
+  //const [errors,setErrors] = useState({});
+  //const username = useRef(null);
+  //Avoir les Inputs de l'utilisateur
+  const handleInput = (e) => {
+    e.persist();
+    setCredential({
+      ...credential,
+      [e.target.name]:e.target.value,
+    }) ;
+  } 
+  const onSubmit = async (e) => {
+    //e.preventDefault();
+    // removeToken();
+    await login(credential)
+    .then(res => {
+      const token = res.data.access_token
+      console.log("Token from login ", res.data.access_token);
+      setToken(token);
+      navigate("/dashboard");
+    })
+    .catch(err => {
+      //console.log("NO TOKEN => ", getTokent())
+      //window.location.href = "/";
+      console.log(e);
+    })
+      
+  }
+
+
+  return (
+    <div className="login-page">
+      <div className="header">
+        <p>Presidence de la republique</p>
+        <p>Garages du gouvernement</p>
+      </div>
+      <div className="armoiries">
+        <img src={armoiries} alt="" />
+      </div>
+      <div className="form">
+        <div className="logo">
+          <div className="image">
+            <img src={logo} alt="" />
+          </div>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <h3>Connectez-vous à votre compte.</h3>
+          <div>
+            <Erreurs validation = {backerreur} />
+            <input
+              type="text"
+              name="username"
+              placeholder="Nom d'utilisateur"
+              onChange={handleInput}
+              aria-invalid={errors.username ? "true" : "false"}
+              {...register('username', { required: true, maxLength: 30 ,minLength:2})}
+              //className = {`${backerreur.messages.username ? 'is-invalide-input':''}`}
+              autoFocus
+            />
+             {errors.username && errors.username.type === "required" && (
+                 <span role="alert" className="error-msg">Le Nom d'utilisateur est obligatoire</span>
+              )}
+               {errors.username && errors.username.type === "minLength" && (
+                 <span role="alert" className="error-msg">Le caractère minimum est deux (2).</span>
+              )}
+          </div>
+          <div>
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Mot de passe"
+              onChange={handleInput} 
+              aria-invalid={errors.password ? "true" : "false"}
+              {...register('password', { required: true})}
+              />
+               {errors.password && errors.password.type === "required" && (
+                 <span role="alert" className="error-msg">Le mot de passe est obligatoire.</span>
+              )}
+            
+          </div>
+          <div className="forgot">
+            <span>Mot de passe oublié ?</span>
+          </div>
+          <button type="submit">Se connecter</button>
+        </form>
+      </div>
+      <div className="motifs">
+        <img src={star} alt="" className="motif star" />
+        <img src={ellipse1} alt="" className="motif ellipse1"/>
+        <img src={ellipse2} alt="" className="motif ellipse2"/>
+        <img src={polygon1} alt="" className="motif polygon1"/>
+        <img src={line1} alt="" className="motif line1"/>
+        <img src={rectangle1} alt="" className="motif rectangle1"/>
+      </div>
+      <div className="footer">
+        <p>DSD-GUINEE &copy;2022.Tous droits réservés</p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

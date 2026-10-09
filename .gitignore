@@ -1,0 +1,16 @@
+.DS_Store
+node_modules/
+vendor/
+.env
+.env.*
+.env-*
+!.env.example
+*.log
+*.map
+storage/framework/cache/data/
+storage/framework/sessions/
+storage/framework/views/
+immagov/backend/vendor/
+immagov/frontend/node_modules/
+sipim/backend/vendor/
+sipim/frontend/node_modules/

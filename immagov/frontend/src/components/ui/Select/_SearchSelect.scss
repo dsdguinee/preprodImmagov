@@ -1,0 +1,144 @@
+// Liste déroulante avec recherche (composant SearchSelect)
+.search-select {
+  position: relative;
+  width: 100%;
+  font-size: 14px;
+
+  // <select> natif gardé pour react-hook-form, invisible mais focalisable
+  &__native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    opacity: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    pointer-events: none;
+  }
+
+  button.search-select__trigger {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid #cbd5d1;
+    border-radius: 8px;
+    background: #fff;
+    color: #14201c;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+    transition: none;
+    &:hover {
+      border-color: #a9b8b2;
+      background: #fff;
+      color: #14201c;
+    }
+    &:focus-visible {
+      outline: 2px solid #017a60;
+      outline-offset: 1px;
+      border-color: #017a60;
+    }
+    &:disabled {
+      background: #f3f6f5 !important;
+      color: #33423d;
+      cursor: not-allowed;
+    }
+    svg {
+      flex: none;
+      color: #5b6b66;
+      transition: transform 0.15s ease;
+    }
+  }
+  &.is-open button.search-select__trigger {
+    border-color: #017a60;
+    svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__value,
+  &__placeholder {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &__placeholder {
+    color: #5b6b66;
+  }
+
+  &__panel {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #dce3e0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(20, 32, 28, 0.12);
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  input.search-select__search {
+    width: 100%;
+    height: 34px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    margin: 0 0 6px;
+    border: 1px solid #cbd5d1;
+    border-radius: 6px;
+    font-size: 14px;
+    &:focus {
+      outline: 2px solid #017a60;
+      outline-offset: 0;
+      border-color: #017a60;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  &__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: #14201c;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    &.is-active {
+      background: #f0f5f3;
+    }
+    &.is-selected {
+      color: #014d3c;
+      font-weight: 600;
+    }
+    svg {
+      flex: none;
+      color: #017a60;
+    }
+  }
+  &__empty {
+    padding: 10px;
+    color: #5b6b66;
+    font-size: 13px;
+  }
+}

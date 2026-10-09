@@ -1,0 +1,485 @@
+@import "colors";
+@import "fonts";
+@import "mixins";
+@import "variables";
+
+* {
+  font-family: $dm-sans;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.App {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  max-width: 2150px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.page {
+  width: 90%;
+  min-height: 80vh;
+  margin: 2em auto 0;
+}
+
+label {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: $dark-grey;
+  > * {
+    margin-top: 0.5em;
+    display: block;
+  }
+//   &.checkbox-label {
+//     display: flex;
+//     align-items: center;
+//     white-space: nowrap;
+//     @media screen and (max-width: 490px) {
+//       white-space: normal;
+//       flex-direction: column;
+//       align-items: flex-start;
+//     }
+//     .checkbox-input {
+//       margin: 0;
+//       padding: 0 !important;
+//       @media screen and (max-width: 490px) {
+//         margin-top: 0.5em;
+//       }
+//     }
+//  }
+}
+select,
+input,
+textarea {
+  padding: 0.56em 0.5em;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: $text-sm;
+  &:disabled {
+    background: #dddddd;
+  }
+}
+
+a {
+  text-decoration: none;
+  color: $black;
+}
+
+p {
+  font-size: 0.8rem;
+}
+
+img {
+  width: 100%;
+  height: 100%; 
+  object-fit: cover;
+  display: block;
+}
+
+.link-active {
+  color: $primary;
+}
+
+button {
+  border: none;
+  outline: none;
+  background-color: $black;
+  color: $white;
+  padding: 0.75em 1.5em;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  &.primary {
+    background-color: $primary!important;
+    color: $white;
+  }
+  &.secondary {
+    background-color: transparent;
+    color: $black;
+    border: 1px solid transparent;
+    &:hover {
+      border: 1px solid $black;
+    }
+  }
+  &.delete {
+    background-color: $red;
+    color: $white;
+  }
+  &.success {
+    background-color: $green;
+    color: $white;
+  }
+  &:disabled {
+    background-color: $dark-grey !important;
+  }
+}
+
+// ? Flex centered and space-between
+.space-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  &.header {
+    margin-bottom: 2em;
+  }
+}
+
+// ? MUI Datagrid
+.MuiDataGrid-root {
+  border: none !important;
+  border-radius: 0 !important;
+
+  //Header
+  .MuiDataGrid-columnHeaders {
+    background-color: $light-grey;
+    border: none !important;
+    font-size: 0.8rem;
+    border-radius: 0 !important;
+  }
+
+  // ? Separator between headers
+  // .MuiDataGrid-columnSeparator {
+  //   display: none !important;
+  // }
+
+  // ? Toolbar
+  .MuiDataGrid-toolbarContainer {
+    margin-bottom: 1em;
+    gap: 1em;
+    .MuiButtonBase-root {
+      color: rgba(0, 0, 0, 0.677);
+      letter-spacing: 0;
+      font-weight: 700;
+      padding: 0.5em 0.7em;
+      text-transform: none;
+      background-color: $light-grey;
+      border-radius: 0;
+      font-size: $text-sm;
+      // ? Icones
+      // .css-y6rp3m-MuiButton-startIcon {
+      //   color: $primary;
+      // }
+    }
+  }
+
+  // ? Popup colonnes
+  // TODO : Find a way to make this work
+  .css-aqpgxn-MuiFormLabel-root-MuiInputLabel-root {
+    font-size: $text-sm !important;
+    font-family: $dm-sans !important;
+  }
+
+  // ? Table data
+  .MuiDataGrid-cell {
+    font-size: $text-md !important;
+  }
+
+  // ? Data-grid photo
+  .photo {
+    height: 30px;
+    width: 30px;
+    img {
+      border-radius: 50%;
+    }
+  }
+
+  // ? Data-grid buttons
+  .options {
+    button {
+      text-transform: uppercase;
+      padding: 0.45em !important;
+      margin-right: 1em;
+      font-size: 0.7rem;
+      color: $black !important;
+      background-color: #fff !important;
+      border: 1px solid #000;
+      border-radius: 5%;
+      &:hover {
+        background-color: $black !important;
+        color: $white !important;
+      }
+      &.delete {
+        color: $red !important;
+        border: 1px solid $red;
+        &:hover {
+          background-color: $red !important;
+          color: $white !important;
+        }
+      }
+      &.activate {
+        color: $green !important;
+        border: 1px solid $green;
+        &:hover {
+          background-color: $primary !important;
+          color: $white !important;
+        }
+      }
+    }
+  }
+}
+
+// ? Messages d'erreurs
+.error-msg {
+  color: $red;
+  margin: 12px 0;
+  font-size: $text-sm;
+  font-weight: 700;
+}
+
+// .closebtn {
+//   margin-left: 15px;
+//   color: white;
+//   font-weight: bold;
+//   float: right;
+//   font-size: 22px;
+//   line-height: 20px;
+//   cursor: pointer;
+//   transition: 0.3s;
+// }
+// .closebtn:hover {
+//   color: black;
+// }
+
+//SweetAlert
+.swal2-popup {
+  padding: 1em 0.5em !important;
+  width: 25em !important;
+  border-radius: 0% !important;
+  * {
+    font-family: $dm-sans !important;
+  }
+  // .swal2-title {
+  //   font-size: 2.5rem;
+  //   color: $black;
+  // }
+  .modal-title {
+    font-size: 1.5rem;
+  }
+  .swal2-actions {
+    .swal2-confirm {
+      background-color: $green !important;
+      border-radius: 0%;
+    }
+  }
+}
+
+.input-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1em;
+}
+
+//Checkbox
+.checkbox {
+  input[type="checkbox"] {
+    vertical-align: middle;
+    position: relative;
+    padding: 0;
+    width: auto;
+    bottom: 1px;
+  }
+  label {
+    display: block;
+    color: #000;
+    font-weight: 500;
+    > * {
+      margin-top: 0;
+      display: inline;
+    }
+  }
+}
+
+// ? Custom Modals
+.modal-component {
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: grid;
+  place-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  .modal {
+    // &.modal-small {
+    //   @include big-desktop() {
+    //     width: 30%;
+    //   }
+    // }
+    // @include big-desktop() {
+    //   width: 40%;
+    // }
+    // @include desktop() {
+    //   width: 50%;
+    // }
+    @media screen and (min-width: 1024px) {
+      width: 40%;
+    }
+    @include tablet() {
+      width: 90%;
+    }
+    background-color: $white;
+    padding: 3em;
+    height: auto;
+    overflow-y: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    h4 {
+      margin: 0 0 1em;
+      font-weight: 700;
+    }
+  
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55em;
+      input,
+      select,
+      textarea {
+        border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+     
+      label {
+        color: #000;
+        font-size: $text-sm;
+        &.password {
+          .password-field {
+            position: relative;
+            .eye-icon {
+              position: absolute;
+              right: 3%;
+              top: 25%;
+              font-size: 1rem;
+              color: $black;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              &:hover {
+                color: $dark-grey;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .close {
+      position: absolute;
+      top: 5%;
+      right: 5%;
+      #close-icon {
+        color: $black;
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .profile-image {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 0.5em;
+    overflow: hidden;
+    position: relative;
+    &:hover {
+      .file-upload-wrapper {
+          opacity: 1;
+      }
+    }
+    img {
+      object-fit: contain;
+    }
+    input[type="file"] {
+      height: 150px;
+      width: 150px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-upload-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      .file-upload {
+        height: 150px;
+        width: 150px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background-size: 100% 200%;
+        transition: all 1s;
+        color: #fff;
+        font-size: 100px;
+  
+      }
+    }
+  }
+}
+
+//Recharts
+.recharts-cartesian-axis-tick {
+  font-size: 0.8rem;
+}
+.search-field {
+  position: relative;
+  .search-icon {
+    position: absolute;
+    right: 3%;
+    top: 25%;
+    font-size: 1rem;
+    color: $black;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    &:hover {
+      color: $dark-grey;
+    }
+  }
+}
+.strong-top{
+  margin-top: 14px;
+}
+.gras{
+  font-weight: bold;
+}
+
+@import "../pages/Login/Login";
+@import "../pages/Dashboard/Dashboard";
+@import "../pages/AdminDashboard/AdminDashboard";
+@import "../pages/AgentDashboard/AgentDashboard";
+@import "../components/FormKit/FormKit";
+@import "../components/PaymentSummary/PaymentSummary";
+@import "../pages/Payment/Payment";
+@import "../pages/PaymentList/PaymentList";
+@import "../pages/PaymentDetails/PaymentDetails";
+@import "../pages/UserSettings/UserSettings";
+@import "../pages/Stats/Stats";
+@import "../components/Navbar/Navbar";
+@import "../components/Footer/Footer";
+@import "../components/StatsBox/StatsBox";
+@import "../components/Stepper/Stepper";
+@import "../components/Spinner/Spinner";
+@import "../components/PaymentSteps/Step";
+@import "../components/CartTable/CartTable";
+@import "../components/SuccessCheck/SuccessCheck";
+@import "../components/InvoiceDetails/InvoiceDetails";
+@import "../components/MenuDropdown/MenuDropdown";
+@import "../components/SideMenu/SideMenu";

@@ -1,0 +1,310 @@
+// Reçu de paiement : une feuille A4 (210 × 297 mm), identique à l'écran et à l'impression
+.invoice {
+  --line: #d9dee5;
+  --muted: #6b7385;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 8mm 14mm 10mm;
+  background: $white;
+  color: $darker-grey;
+  font-family: $dm-sans;
+  font-size: 10pt;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba($darker-grey, .15);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  h1, h2, p { margin: 0; }
+
+  .invoice-top {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 6mm;
+    align-items: center;
+    padding-bottom: 5mm;
+    border-bottom: 1px solid var(--line);
+    .dsd { height: 20mm; width: auto; }
+    .org {
+      display: grid;
+      gap: 1mm;
+      .rep { font-size: 8pt; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+      .name { font-size: 14pt; font-weight: 700; }
+      .sys { font-size: 9pt; color: var(--muted); }
+    }
+    .agence {
+      display: grid;
+      gap: 1mm;
+      justify-items: end;
+      text-align: right;
+      img { height: 13mm; width: auto; }
+      span { font-size: 8.5pt; color: var(--muted); }
+    }
+  }
+
+  .invoice-title {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6mm;
+    align-items: end;
+    padding: 5mm 0 4mm;
+    h1 {
+      font-size: 24pt;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      line-height: 1;
+      white-space: nowrap;
+      small {
+        display: block;
+        font-size: 9pt;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        margin-bottom: 2mm;
+      }
+    }
+    .ref {
+      display: grid;
+      gap: 1mm;
+      justify-items: end;
+      .lbl { font-size: 8pt; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+      .no {
+        font-family: var(--mono);
+        font-size: 14pt;
+        font-weight: 500;
+        background: $light-grey;
+        border-left: 3px solid $primary;
+        padding: 1.5mm 3mm;
+        letter-spacing: .04em;
+      }
+      .date { font-size: 9pt; color: var(--muted); }
+    }
+  }
+
+  // Tampon de statut près du total, couleur selon l'état du paiement
+  .stamp {
+    --c: #{$green};
+    justify-self: start;
+    margin: 5mm 0 0 6mm;
+    transform: rotate(-8deg);
+    border: 2.5px solid var(--c);
+    color: var(--c);
+    font-weight: 700;
+    font-size: 15pt;
+    letter-spacing: .18em;
+    padding: 1.5mm 5mm;
+    border-radius: 2mm;
+    text-align: center;
+    white-space: nowrap;
+    small { display: block; font-size: 7pt; letter-spacing: .08em; font-weight: 500; }
+    &.attente { --c: #{$brown}; }
+    &.rejete { --c: #{$red}; }
+    &.resoumettre { --c: #{$night-blue}; }
+    &.resoumis { --c: #{$dark-grey}; }
+  }
+
+  .invoice-blocks {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+    .block {
+      background: $light-grey;
+      border-radius: 2mm;
+      padding: 4mm;
+      display: grid;
+      gap: 1.6mm;
+      align-content: start;
+      h2 {
+        font-size: 8pt;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+        margin-bottom: 1mm;
+      }
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3mm;
+      font-size: 9pt;
+      span { color: var(--muted); }
+      b { text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+      b.mono { font-family: var(--mono); font-weight: 500; font-size: 8.8pt; }
+      // Type de plaque (paiements.type_plaque : EP, VA, IT) encadré comme une plaque
+      .plaque {
+        display: inline-block;
+        font-family: var(--mono);
+        font-weight: 600;
+        font-size: 8.5pt;
+        color: $darker-grey;
+        letter-spacing: .08em;
+        border: 1.5px solid $darker-grey;
+        border-radius: 1mm;
+        padding: 0 2mm;
+        background: $white;
+      }
+    }
+  }
+
+  .invoice-lines {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 7mm;
+    font-size: 9.5pt;
+    th {
+      background: $darker-grey;
+      color: $white;
+      font-weight: 500;
+      font-size: 8pt;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 2.5mm 3mm;
+      &:last-child { text-align: right; }
+    }
+    td {
+      padding: 3mm;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      .sub { display: block; font-size: 8pt; color: var(--muted); }
+    }
+    .amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    .fee td { color: var(--muted); }
+    .fee .amt { font-weight: 500; }
+  }
+
+  .invoice-totals {
+    display: grid;
+    grid-template-columns: 1fr 72mm;
+    gap: 6mm;
+    margin-top: 5mm;
+    align-items: start;
+    .words {
+      display: grid;
+      align-content: start;
+      font-size: 9pt;
+      color: var(--muted);
+      padding-top: 2mm;
+      b { display: block; color: $darker-grey; font-size: 10pt; font-weight: 600; margin-top: 1mm; }
+      b::first-letter { text-transform: uppercase; }
+    }
+    .sum {
+      display: grid;
+      gap: 1.5mm;
+      .row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9pt;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        padding: 0 3mm;
+      }
+      .grand {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        background: $primary;
+        color: $white;
+        border-radius: 2mm;
+        padding: 3mm;
+        margin-top: 1mm;
+        span { font-size: 9pt; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+        b { font-size: 16pt; font-variant-numeric: tabular-nums; }
+        b small { font-size: 9pt; font-weight: 500; margin-left: 1mm; }
+      }
+    }
+  }
+
+  .invoice-control {
+    display: grid;
+    grid-template-columns: 36mm 1fr 1fr;
+    gap: 6mm;
+    margin-top: auto;
+    padding-top: 4mm;
+    align-items: end;
+    .qr {
+      display: grid;
+      gap: 1.5mm;
+      justify-items: center;
+      text-align: center;
+      img { width: 32mm; height: 32mm; border: 1px solid var(--line); border-radius: 1.5mm; padding: 1mm; background: $white; }
+      span { font-size: 7.5pt; color: var(--muted); line-height: 1.3; }
+    }
+    .sign {
+      border: 1px dashed var(--line);
+      border-radius: 2mm;
+      height: 30mm;
+      padding: 3mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      span { font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+      i { font-style: normal; font-size: 8.5pt; border-top: 1px solid var(--line); padding-top: 1.5mm; }
+    }
+  }
+
+  .invoice-foot {
+    margin-top: 5mm;
+    padding-top: 3mm;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6mm;
+    font-size: 8pt;
+    color: var(--muted);
+    align-items: center;
+    b { color: $darker-grey; }
+    .foot-text { display: grid; gap: 1.5mm; }
+    .meta { font-family: var(--mono); font-size: 7.5pt; }
+    // Marques nationales : Guinée et Simandou 2040 (copies recadrées dans assets/images/*-recu.png)
+    .partners {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+      img { height: 11mm; width: auto; }
+      img + img { padding-left: 4mm; border-left: 1px solid var(--line); }
+    }
+  }
+}
+
+// Impression : le reçu remplit la zone imprimable d'une page A4, quel que soit le navigateur.
+// Chrome / Firefox appliquent "@page { margin: 0 }" (297 mm, sans en-tête du navigateur) ; Safari
+// ignore cette marge et garde celles de l'imprimante. 100vh vaut alors la hauteur imprimable :
+// le contenu, un peu resserré, tient même dans la zone réduite de Safari et l'espace restant
+// est réparti entre les sections, du haut au bas de la page.
+@media print {
+  .invoice {
+    box-shadow: none;
+    margin: 0;
+    width: auto;
+    min-height: 0;
+    height: 100vh;
+    padding: 6mm 10mm;
+    overflow: hidden;
+    justify-content: space-between;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+
+    .invoice-top { padding-bottom: 3mm; .dsd { height: 17mm; } .agence img { height: 11mm; } }
+    .invoice-title { padding: 0; h1 { font-size: 21pt; } }
+    .invoice-blocks .block { padding: 3mm 4mm; }
+    .invoice-lines { margin-top: 0; td { padding: 2.2mm 3mm; } }
+    .invoice-totals { margin-top: 0; }
+    .stamp { margin-top: 2mm; }
+    .invoice-control {
+      margin-top: 0;
+      padding-top: 0;
+      .qr img { width: 28mm; height: 28mm; }
+      .sign { height: 25mm; }
+    }
+    .invoice-foot { margin-top: 0; }
+  }
+}

@@ -1,0 +1,18 @@
+@font-face {
+    font-family: "Century Gothic";
+    src: url("./../assets/fonts/GOTHIC.TTF");
+}   
+
+@font-face {
+    font-family: "Century Gothic";
+    src: url("./../assets/fonts/GOTHICB0.TTF");
+    font-weight: bold;
+}
+
+$inter : "Inter", sans-serif;
+$koulen : "Koulen", cursive;
+$ptsans : "PT Sans", sans-serif;
+$century : 'Century Gothic', sans-serif;
+
+$text-sm : 0.77rem;
+$text-md : 0.83rem;

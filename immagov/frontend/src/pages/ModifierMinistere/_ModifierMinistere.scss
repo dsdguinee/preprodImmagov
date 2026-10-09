@@ -1,0 +1,35 @@
+.modifier-ministere {
+    width: 70%;
+    margin: 2em auto;
+    @include tablet() {
+        width: 90%;
+    }
+    .ministere {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        background-color: $light-grey;
+        form {
+            padding: 2em;
+            input {
+                border-bottom: none;
+            }
+            button {
+                margin-top: 1em;
+            }
+        }
+    }
+    .directions {
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            @include phone() {
+                flex-direction: column;
+                gap: 1em;
+            }
+            button {
+                text-transform: uppercase;
+            }
+        }
+    }
+}

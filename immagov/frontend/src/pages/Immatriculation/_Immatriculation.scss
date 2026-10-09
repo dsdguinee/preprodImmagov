@@ -1,0 +1,47 @@
+.immatriculation-page {
+  width: 70%;
+  @include tablet() {
+    width: 90%;
+  }
+  h2 {
+    margin-bottom: 1.5em;
+  }
+  .stepper {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1em;
+    .step {
+      cursor: pointer;
+      &:hover,
+      &.step-active {
+        .step-number span {
+          background-color: $primary-green;
+          color: $white;
+        }
+        .step-label {
+          font-weight: 600;
+        }
+      }
+      .step-number {
+        span {
+          transition: all 0.3s ease;
+          font-size: 1.15rem;
+          font-weight: 600;
+          padding: 0.35em 0.7em;
+          border-radius: 50%;
+          background-color: $light-grey;
+        }
+        margin-bottom: 1em;
+      }
+      .step-label {
+        transition: all 0.1s ease;
+        font-size: 0.8rem;
+      }
+    }
+  }
+  .step-components {
+    margin-top: 1.5em;
+    padding: 2em 2em;
+    background-color: $light-grey;
+  }
+}

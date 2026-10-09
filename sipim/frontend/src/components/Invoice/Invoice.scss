@@ -1,0 +1,79 @@
+.invoice {
+  margin: 0 auto;
+  padding: 2.5em;
+  background-color: $light-grey;
+  @media print {
+    height: 100vh;
+    background-color: #fff;
+    .cart-table {
+      overflow: initial;
+    }
+  }
+  > div {
+    margin-bottom: 3em;
+    span {
+      &.subtitle {
+        font-weight: 500;
+        color: $dark-grey;
+        margin-bottom: 0.5em;
+      }
+    }
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bill-details {
+    display: flex;
+    gap: 1em;
+    justify-content: space-between;
+    @media screen and (max-width: 740px) {
+      flex-direction: column;
+    }
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+      span {
+        font-size: 0.75rem;
+      }
+    }
+    .details {
+      > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1em;
+      }
+    }
+  }
+  .total {
+    display: flex;
+    justify-content: flex-end;
+    p {
+      font-size: 1.2rem;
+    }
+  }
+  .signature {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5em;
+    margin-bottom: 8em;
+  }
+  .invoice-footer {
+    padding-top: 2em;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    text-align: center;
+    margin-bottom: 0;
+    p {
+      &:last-child {
+        margin-top: 1.5em;
+      }
+    }
+    a {
+      color: #1f78b4;
+    }
+  }
+}

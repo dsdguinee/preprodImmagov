@@ -1,0 +1,64 @@
+.dashboard {
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .payments-stats {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    h3 {
+      padding-bottom: 0.2em;
+      border-bottom: 1px solid $black;
+    }
+    .boxes {
+      margin-top: 1em;
+      display: grid;
+      gap: 2em;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+  }
+  .stats {
+    h3 {
+      padding-bottom: 0.2em;
+      border-bottom: 1px solid $black;
+    }
+    .chart-and-array {
+      margin-top: 1.5em;
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      @include tablet() {
+        flex-direction: column;
+      }
+      .chart {
+        flex: 1;
+        width: 35%;
+        height: 300px;
+        @include tablet() {
+          width: 100%;
+        }
+      }
+      .array {
+        flex: 2;
+        @include tablet() {
+          width: 100%;
+        }
+      }
+    }
+  }
+  @keyframes grow {
+      from {
+          font-size: 1px;
+      }
+      to {
+          font-size: 12px;
+      }
+   }
+  .nomComplet{
+    animation-name: grow;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+   // animation-iteration-count: 2;
+  }
+}

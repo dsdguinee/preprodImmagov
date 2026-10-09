@@ -1,0 +1,34 @@
+.mobile-nav {
+    height: 100vh;
+    position: absolute;
+    width: 40%;
+    @include tablet() {
+        width: 70%;
+    }
+    @include phone() {
+        width: 100%;
+    }
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    background-color: $light-grey;
+    padding: 1em 3em;
+    transition: all 0.4s ease;
+    transform: translateX(-100%);
+    ul {
+        margin-top: 5em;
+        list-style: none;
+        li {
+            margin: 0.5em 0;
+            font-weight: 700;
+            cursor: pointer;
+            &:hover {
+                color: $primary-green;
+            }
+        }
+    }
+    &.open {
+        transform: translateX(0);
+    }
+}

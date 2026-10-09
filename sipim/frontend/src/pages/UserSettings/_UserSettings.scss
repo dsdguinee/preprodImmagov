@@ -1,0 +1,75 @@
+.user-settings {
+    width: 35%;
+    @include phone() {
+      width: 80%;
+    }
+    @include tablet_landscape() {
+      width: 70%;
+    }
+    h3 {
+      margin-bottom: 2em;
+    }
+    main {
+      background-color: $light-grey;
+      padding: 2em;
+      .profile-image {
+        width: 150px;
+        height: 150px;
+        overflow: hidden;
+        position: relative;
+        &:hover {
+          .file-upload-wrapper {
+              opacity: 1;
+          }
+        }
+        input[type="file"] {
+          height: 150px;
+          width: 150px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+        .file-upload-wrapper {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+          top: 0;
+          left: 0;
+          opacity: 0;
+          .file-upload {
+            height: 150px;
+            width: 150px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-size: 100% 200%;
+            transition: all 1s;
+            color: #fff;
+            font-size: 100px;
+           
+          }
+        }
+      }
+      form {
+        margin-top: 1em;
+        > div {
+          margin-bottom: 0.5em;
+        }
+        button {
+          margin-top: 0.5em;
+        }
+        @include tablet() {
+          .input-group {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          }
+        }
+      }
+    }
+  }

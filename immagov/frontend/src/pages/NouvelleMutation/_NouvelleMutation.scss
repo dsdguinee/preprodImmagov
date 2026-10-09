@@ -1,0 +1,22 @@
+.nouvelle-mutation-page {
+    width: 70%;
+    @include tablet() {
+      width: 90%;
+    }
+    h2 {
+      margin-bottom: 1.5em;
+    }
+    .stepper {
+        .step {
+            cursor: pointer;
+            &:hover,
+            &.step-active {
+              .step-number span {
+                background-color: $yellow;
+                color: $white;
+              }
+            }
+          }
+    }
+  }
+  

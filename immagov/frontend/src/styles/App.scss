@@ -1,0 +1,476 @@
+@import "colors";
+@import "fonts";
+@import "mixins";
+
+* {
+  font-family: $inter;
+}
+
+h1,
+h2,
+h3,
+li {
+  font-family: $century;
+}
+
+.App {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  min-height: 100vh;
+  max-width: 2150px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.page {
+  width: 90%;
+  height: 100%;
+  min-height: 80vh;
+  margin: 2em auto 1em;
+}
+
+label {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: $dark-grey;
+  > * {
+    margin-top: 0.5em;
+    display: block;
+  }
+  &.checkbox-label {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    @media screen and (max-width: 490px) {
+      white-space: normal;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .checkbox-input {
+      margin: 0;
+      padding: 0 !important;
+      @media screen and (max-width: 490px) {
+        margin-top: 0.5em;
+      }
+    }
+  }
+}
+
+.obligatoire {
+  display: inline !important;
+  color: $red;
+}
+input[type="text"],
+input[type="password"],
+textarea {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 0.5em;
+  color: $darker-grey;
+}
+
+a {
+  text-decoration: none;
+  color: $black;
+}
+
+img {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.link-active {
+  color: $primary-green;
+}
+
+button {
+  border: none;
+  outline: none;
+  background-color: $black;
+  color: $white;
+  padding: 1em 2em;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  &.primary {
+    background-color: $primary-green;
+  }
+  &.primary-brown {
+    background-color: $brown;
+  }
+  &.primary-yellow {
+    background-color: $yellow;
+  }
+  &.secondary {
+    border: 1px solid $black;
+    background-color: transparent;
+    color: $black;
+    padding: 0.9em 2em;
+    &:hover {
+      background-color: $black;
+      color: $white;
+    }
+  }
+  &.delete {
+    background-color: $red;
+    color: $white;
+  }
+  &:disabled {
+    background-color: $dark-grey !important;
+  }
+}
+
+.error-msg {
+  color: $red;
+  margin: 12px 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.closebtn:hover {
+  color: black;
+}
+
+//Stepper
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1em;
+  .step {
+    cursor: pointer;
+    &:hover,
+    &.step-active {
+      .step-number span {
+        background-color: $primary-green;
+        color: $white;
+      }
+      .step-label {
+        font-weight: 700;
+        font-family: $inter;
+      }
+    }
+    .step-number {
+      span {
+        transition: all 0.3s ease;
+        font-size: 1.15rem;
+        font-weight: 700;
+        padding: 0.35em 0.7em;
+        border-radius: 50%;
+        background-color: $light-grey;
+      }
+      margin-bottom: 1em;
+    }
+    .step-label {
+      transition: all 0.1s ease;
+      font-size: 0.8rem;
+    }
+  }
+}
+.step-components {
+  margin-top: 1.5em;
+  padding: 2em 2em;
+  background-color: $light-grey;
+}
+
+//Datagrid
+// .ag-theme-material {
+//   margin-top: 2em;
+//   .ag-header-row {
+//     background-color: $light-grey;
+//     font-weight: 700;
+//   }
+//   .ag-header-cell-label {
+//     font-size: 0.8rem;
+//   }
+//   .ag-center-cols-container {
+//     min-width: 100% !important;
+//   }
+//   .options {
+//     button {
+//       text-transform: uppercase;
+//       padding: 0.45em !important;
+//       margin-right: 1em;
+//       font-size: 0.7rem;
+//       color: $black !important;
+//       background-color: #fff !important;
+//       border: 1px solid #000;
+//       border-radius: 5%;
+//       &:hover {
+//         background-color: $black !important;
+//         color: $white !important;
+//       }
+//       &.delete-btn {
+//         color: $red !important;
+//         border: 1px solid $red;
+//         &:hover {
+//           background-color: $red !important;
+//           color: $white !important;
+//         }
+//       }
+//       &.activate-btn {
+//         color: $primary-green !important;
+//         border: 1px solid $primary-green;
+//         &:hover {
+//           background-color: $primary-green !important;
+//           color: $white !important;
+//         }
+//       }
+//     }
+//   }
+// }
+
+// ? MUI Datagrid
+.MuiDataGrid-root {
+  border: none !important;
+  border-radius: 0 !important;
+
+  //Header
+  .MuiDataGrid-columnHeaders {
+    background-color: $light-grey;
+    border: none !important;
+    font-size: 0.8rem;
+    border-radius: 0 !important;
+  }
+
+  // ? Separator between headers
+  // .MuiDataGrid-columnSeparator {
+  //   display: none !important;
+  // }
+
+  // ? Toolbar
+  .MuiDataGrid-toolbarContainer {
+    margin: 1em 0;
+    gap: 1em;
+    padding: 0;
+    .MuiButtonBase-root {
+      color: rgba(0, 0, 0, 0.677);
+      letter-spacing: 0;
+      font-weight: 700;
+      padding: 0.5em 0.7em;
+      text-transform: none;
+      background-color: $light-grey;
+      border-radius: 0;
+      font-size: $text-sm;
+      // ? Icones
+      // .css-y6rp3m-MuiButton-startIcon {
+      //   color: $primary;
+      // }
+    }
+  }
+
+  // ? Popup colonnes
+  // TODO : Find a way to make this work
+  .css-aqpgxn-MuiFormLabel-root-MuiInputLabel-root {
+    font-size: $text-sm !important;
+    font-family: $inter !important;
+  }
+
+  // ? Table data
+  .MuiDataGrid-cell {
+    font-size: $text-md !important;
+  }
+
+  // ? Data-grid photo
+  .photo {
+    height: 30px;
+    width: 30px;
+    img {
+      border-radius: 50%;
+    }
+  }
+
+  // ? Data-grid buttons
+  .options {
+    button {
+      text-transform: uppercase;
+      padding: 0.45em !important;
+      margin-right: 1em;
+      font-size: 0.7rem;
+      color: $black !important;
+      background-color: #fff !important;
+      border: 1px solid #000;
+      border-radius: 5%;
+      &:hover {
+        background-color: $black !important;
+        color: $white !important;
+      }
+      &.delete {
+        color: $red !important;
+        border: 1px solid $red;
+        &:hover {
+          background-color: $red !important;
+          color: $white !important;
+        }
+      }
+      &.activate {
+        color: $primary-green !important;
+        border: 1px solid $primary-green;
+        &:hover {
+          background-color: $light-green !important;
+          color: $white !important;
+        }
+      }
+    }
+  }
+}
+
+//SweetAlert
+.swal2-popup {
+  padding: 1em 0.5em !important;
+  width: 25em !important;
+  border-radius: 0% !important;
+  * {
+    font-family: $inter !important;
+  }
+  .swal2-title {
+    font-size: 1.5rem;
+    color: $black;
+  }
+  .swal2-actions {
+    .swal2-confirm {
+      background-color: $primary-green !important;
+      border-radius: 0%;
+    }
+  }
+}
+
+//Custom Modals
+.modal-component {
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: grid;
+  place-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  .modal {
+    &.modal-small {
+      @include big-desktop() {
+        width: 30%;
+      }
+    }
+    @include big-desktop() {
+      width: 45%;
+    }
+    @include tablet() {
+      width: 90%;
+    }
+    background-color: $white;
+    padding: 3em;
+    height: auto;
+    overflow-y: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    h4 {
+      margin: 0 0 1em;
+      font-weight: 700;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55em;
+      label {
+        color: $dark-grey;
+        font-size: 0.75rem;
+        &.password {
+          .password-field {
+            position: relative;
+            .eye-icon {
+              position: absolute;
+              right: 3%;
+              top: 25%;
+              font-size: 1rem;
+              color: $black;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              &:hover {
+                color: $dark-grey;
+              }
+            }
+          }
+        }
+      }
+      select,
+      input,
+      textarea {
+        padding: 0.5em;
+        border: none;
+        width: 100%;
+        background-color: $light-grey;
+        font-size: 0.75rem;
+      }
+      textarea:disabled {
+        background: #dddddd;
+      }
+    }
+
+    .close {
+      position: absolute;
+      top: 5%;
+      right: 5%;
+      #close-icon {
+        color: $black;
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+    }
+  }
+  .danger {
+    background-color: $red;
+  }
+}
+
+@import "../pages/Login/Login";
+@import "../pages/Dashboard/Dashboard";
+@import "../pages/Dashboard/AgentDashboard";
+@import "../pages/Dashboard/DirecteurDashboard";
+@import "../pages/Immatriculation/Immatriculation";
+@import "../pages/ListeImmatriculation/ListeImmatriculation";
+@import "../pages/ListeMinistere/ListeMinistere";
+@import "../pages/Reservation/_ListeReservation";
+@import "../pages/Mutation/Mutation";
+@import "../pages/ModifierMinistere/ModifierMinistere";
+@import "../pages/ListeUtilisateurs/ListeUtilisateurs";
+@import "../pages/ListeRoles/ListeRoles";
+@import "../pages/NouvelleReforme/NouvelleReforme";
+@import "../pages/NouvelleMutation/NouvelleMutation";
+@import "../pages/DetailsImmatriculation/DetailsImmatriculation";
+@import "../pages/DetailsImmatriculation/FicheImmatriculation";
+@import "../pages/DetailsCarteGrise/DetailsCarteGrise";
+@import "../pages/ValidationMinistere/ValidationMinistere";
+@import "../components/Navbar/Navbar";
+@import "../components/MobileNav/MobileNav";
+@import "../components/Immatriculation/Step";
+@import "../components/Immatriculation/ui/ImmatUi";
+@import "../components/ui/Select/SearchSelect";
+@import "../components/ui/Input/Input";
+@import "../components/ui/Plaque/Plaque";
+@import "../components/Immatriculation/HistoriqueVehicule";
+@import "../components/Footer/Footer";
+@import "../components/Spinner/Spinner";
+@import "../components/LicensePlate/LicensePlate";
+@import "../components/AjouterUtilisateurModal/AjouterUtilisateurModal";
+@import "../components/RectoCarte/RectoCarte";
+@import "../components/VersoCarte/VersoCarte";
+@import url("../components/AjouterReservationModal/reservation.css")
+

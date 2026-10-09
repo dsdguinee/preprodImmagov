@@ -1,0 +1,23 @@
+.payment-invoice {
+  // Largeur d'une feuille A4 ; sur petit écran la feuille défile horizontalement
+  width: 90%;
+  max-width: calc(210mm + 2em);
+  font-size: 0.85rem;
+  overflow-x: auto;
+  padding-bottom: 2em;
+
+  .buttons-group {
+    margin-bottom: 2em;
+    .left {
+      .print-btn {
+        margin-right: 0.5em;
+      }
+    }
+    @include phone() {
+      flex-direction: column;
+      .right {
+        margin-top: 0.5em;
+      }
+    }
+  }
+}

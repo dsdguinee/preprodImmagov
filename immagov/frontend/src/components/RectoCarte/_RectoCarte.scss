@@ -1,0 +1,66 @@
+.face-carte {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  // ? aperçu
+  // width: 600px;
+  // height: 380px;
+  // ? Taille reelle
+  width: 325px;
+  height: 204px;
+
+  p {
+    position: absolute;
+    font-weight: 700;
+    // ? aperçu
+    //   font-size: 0.9rem;
+    // ? impression
+    font-size: 0.6rem;
+  }
+}
+
+// ? impression
+.recto {
+  background-image: url("./../../assets/cg-face.png"); /* The image used */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Do not repeat the image */
+  background-size: cover;
+  @media print {
+    background: none;
+  }
+  .num-immatriculation {
+    bottom: 14.5%;
+    left: 33%;
+  }
+  .emission {
+    bottom: 1%;
+    left: 4.8%;
+  }
+  .validite-1 {
+    bottom: 1%;
+    left: 36%;
+  }
+}
+
+// ? aperçu
+//   .recto {
+//     background-image: url("./../../assets/cg-face.png"); /* The image used */
+//     background-position: center; /* Center the image */
+//     background-repeat: no-repeat; /* Do not repeat the image */
+//     background-size: cover;
+//     @media print {
+//         background: none;
+//     }
+//     .num-immatriculation {
+//       bottom: 15%;
+//       left: 33%;
+//     }
+//     .emission {
+//       bottom: 1%;
+//       left: 4%;
+//     }
+//     .validite-1 {
+//       bottom: 1%;
+//       left: 36%;
+//     }
+//   }

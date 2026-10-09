@@ -1,0 +1,138 @@
+.face-carte {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  // ? aperçu
+  // width: 600px;
+  // height: 380px;
+  // ? Taille reelle
+  width: 325px;
+  height: 204px;
+
+  p {
+    position: absolute;
+    font-weight: 700;
+    // ? aperçu
+    //   font-size: 0.9rem;
+    // ? impression
+    font-size: 0.6rem;
+  }
+}
+
+// ? impression
+.verso {
+  background-image: url("./../../assets/cg-dos.png"); /* The image used */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Do not repeat the image */
+  background-size: cover;
+  @media print {
+    background: none;
+  }
+  .department {
+    top: 6%;
+    left: 24%;
+  }
+  .service {
+    top: 12.4%;
+    left: 19%;
+  }
+  .type {
+    top: 19.25%;
+    left: 18%;
+  }
+  .marque {
+    top: 26%;
+    left: 16%;
+  }
+  .modele {
+    top: 26%;
+    left: 58%;
+  }
+  .chassis {
+    top: 32%;
+    left: 30%;
+  }
+  .energie {
+    top: 38.5%;
+    left: 16%;
+  }
+  .pa {
+    top: 38.5%;
+    left: 54%;
+  }
+  .ptac {
+    top: 44.6%;
+    left: 15%;
+  }
+  .pv {
+    top: 44.6%;
+    left: 35%;
+  }
+  .cu {
+    top: 44.6%;
+    left: 55%;
+  }
+  .date-mc {
+    top: 51.5%;
+    left: 55%;
+  }
+}
+
+// ? aperçu
+//   .verso {
+//     background-image: url("./../../assets/cg-dos.png"); /* The image used */
+//     background-position: center; /* Center the image */
+//     background-repeat: no-repeat; /* Do not repeat the image */
+//     background-size: cover;
+//     @media print {
+//         background: none;
+//     }
+//     .department {
+//       top: 6%;
+//       left: 25%;
+//     }
+//     .service {
+//       top: 12%;
+//       left: 20%;
+//     }
+//     .type {
+//       top: 19%;
+//       left: 18%;
+//     }
+//     .marque {
+//       top: 26%;
+//       left: 16%;
+//     }
+//     .modele {
+//       top: 26%;
+//       left: 58%;
+//     }
+//     .chassis {
+//       top: 32%;
+//       left: 30%;
+//     }
+//     .energie {
+//       top: 39%;
+//       left: 16%;
+//     }
+//     .pa {
+//       top: 39%;
+//       left: 58%;
+//     }
+//     .ptac {
+//       top: 45.5%;
+//       left: 15%;
+//     }
+//     .pv {
+//       top: 45.5%;
+//       left: 35%;
+//     }
+//     .cu {
+//       top: 45.5%;
+//       left: 55%;
+//     }
+//     .date-mc {
+//       top: 52%;
+//       left: 55%;
+//     }
+//   }

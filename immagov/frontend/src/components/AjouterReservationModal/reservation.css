@@ -1,0 +1,15 @@
+.input-group{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+    gap: 1em;
+    margin-bottom: 12px;
+    border-bottom: 2px solid  rgba(0, 0, 0, 0.069);
+    padding: 0px 0px 12px;
+}
+.success{
+    background-color: #296C01;
+}
+.input-group:last-child{
+    border-bottom: none;
+    margin-bottom: 2px;
+}

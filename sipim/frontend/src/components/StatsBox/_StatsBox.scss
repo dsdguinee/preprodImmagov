@@ -1,0 +1,31 @@
+.stats-box {
+    padding: 1em;
+    background-color: $lighter-grey;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.5em;
+    border-radius: 5px;
+    .top {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        strong {
+            font-size: 1.3rem;
+        }
+    }
+    .bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        a {
+            text-decoration: underline;
+            font-size: $text-sm;
+        }
+        .icon {
+            background-color: #ebebeb;
+            padding: 0.4em;
+            border-radius: 5px;
+        }
+    }
+}

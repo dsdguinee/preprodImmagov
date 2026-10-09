@@ -1,0 +1,104 @@
+// Blocs propres au tableau de bord agent ; la base est dans _AdminDashboard.scss
+.agent-dashboard {
+  .search {
+    display: flex;
+    max-width: 460px;
+    background: $white;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    overflow: hidden;
+    input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      margin: 0;
+      padding: 9px 12px;
+      font-size: 13px;
+      background: transparent;
+      &:focus { outline: none; }
+    }
+    &:focus-within { border-color: $primary; }
+    button { border-radius: 0; }
+  }
+  .search-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    background: $lighter-grey;
+    border-radius: 5px;
+    padding: 10px 14px;
+  }
+
+  .kpi {
+    &.attn { border-left: 3px solid var(--c); }
+    &.warn { --c: var(--warn); }
+    &.crit { --c: var(--crit); }
+    &.good { --c: var(--good); }
+    > .muted, > a { font-size: 12px; }
+    > a { color: $darker-grey; text-decoration: underline; font-weight: 600; }
+  }
+
+  .todo {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    li {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--line);
+      &:last-child { border-bottom: 0; }
+      @include phone() { grid-template-columns: 1fr; }
+    }
+    .what {
+      min-width: 0;
+      font-size: 13px;
+      span { display: block; font-size: 12px; color: $dark-grey; overflow-wrap: anywhere; }
+    }
+    .motif {
+      margin-top: 4px;
+      font-size: 12px;
+      background: var(--crit-soft);
+      border-radius: 5px;
+      padding: 5px 8px;
+    }
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    .stat {
+      display: grid;
+      gap: 2px;
+      b { font-size: 20px; font-variant-numeric: tabular-nums; }
+      span { font-size: 12px; color: $dark-grey; }
+    }
+  }
+
+  // Mes encaissements ce mois
+  .encaisse {
+    display: grid;
+    gap: 2px;
+    .v {
+      font-size: 26px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      small { font-size: 13px; font-weight: 500; color: $dark-grey; margin-left: 4px; }
+    }
+    > .muted { font-size: 12px; }
+  }
+
+  .copy {
+    background: transparent;
+    color: $darker-grey;
+    text-decoration: underline;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 4px;
+  }
+}

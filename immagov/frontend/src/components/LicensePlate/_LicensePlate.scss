@@ -1,0 +1,63 @@
+.license-plate {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: 4px solid $night-blue;
+    border-radius: 10px;
+    color: $night-blue;
+    padding: 0.5em 1em;
+    &.green {
+        color: $white;
+        background-color: $light-green;
+        border: 4px solid $light-green;
+        .left {
+            span {
+                color: $white;
+            }
+        }
+    }
+    &.red {
+        color: $red;
+        border: 4px solid $red;
+    }
+    &.yellow{
+        color: $light-green;
+        border: 4px solid $light-green;
+        background-color: yellow;
+    }
+    .left {
+        margin-right: 0.5em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        img {
+            width: 100%;
+        }
+        .map {
+            width: 30px;
+            margin: 0.1em 0;
+            @include phone() {
+                width: 20px;
+            }
+        }
+        .qr {
+            width: 15px;
+            @include phone() {
+                width: 10px;
+            }
+        }
+        span{
+            font-weight: 600;
+            color: $black;
+        }
+    }
+    .right {
+        p {
+            font-size: 2.8rem;
+            @include phone() {
+                font-size: 2rem;
+            }
+            font-weight: 700;
+        }
+    }
+}

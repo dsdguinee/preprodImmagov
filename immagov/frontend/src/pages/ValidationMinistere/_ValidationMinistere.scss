@@ -1,0 +1,32 @@
+.validation-ministere {
+  width: 60%;
+  @include phone() {
+    width: 90%;
+  }
+  main {
+    margin-top: 1em;
+    background-color: $light-grey;
+    padding: 2em;
+    .input-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1em;
+      padding-bottom: 1.5em;
+      input[type="text"] {
+        border-bottom: none;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      @include phone() {
+        flex-direction: column;
+        * {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

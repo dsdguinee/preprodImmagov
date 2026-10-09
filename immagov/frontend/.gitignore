@@ -1,0 +1,5 @@
+node_modules
+src/.DS_Store
+src/components/.DS_Store
+.env
+.env.development.local

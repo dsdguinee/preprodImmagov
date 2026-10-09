@@ -1,0 +1,369 @@
+// Tableau de bord du Directeur : complète les styles agent- (cartes, graphique, tableau, boutons)
+.dir-dash {
+  .dir-head-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .agent-btn.dir-btn--secondary {
+    border: 1px solid #cbd5d1;
+    background: #fff;
+    color: #14201c;
+    &:hover {
+      background: #f3f6f5;
+      color: #14201c;
+    }
+  }
+  .agent-btn.dir-btn--approuver {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    border: 1px solid #c9a227;
+    background: #fff8e6;
+    color: #6b4e00;
+    white-space: nowrap;
+    &:hover {
+      background: #fff4d6;
+      color: #6b4e00;
+    }
+  }
+  .agent-btn.dir-btn--compact {
+    align-self: flex-start;
+    height: 40px;
+    padding: 0 16px;
+  }
+}
+
+// Barre de période
+.dir-periode {
+  background: #fff;
+  border: 1px solid #dce3e0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #33423d;
+  }
+  &__dates {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #33423d;
+      > * {
+        margin-top: 0;
+      }
+    }
+    input {
+      height: 36px;
+      box-sizing: border-box;
+      padding: 0 10px;
+      border: 1px solid #cbd5d1;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #14201c;
+      &:focus {
+        outline: 2px solid #017a60;
+        outline-offset: 1px;
+        border-color: #017a60;
+      }
+    }
+  }
+  &__resume {
+    margin-left: auto;
+    font-size: 13px;
+    color: #5b6b66;
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+}
+
+// Indicateurs (non cliquables)
+.dir-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.dir-kpi {
+  background: #fff;
+  border: 1px solid #dce3e0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  &__alerte {
+    color: #6b4e00 !important;
+    font-weight: 600;
+  }
+}
+
+// File de validation
+.dir-file {
+  &__head {
+    padding: 18px 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  &__titre {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  &__foot {
+    justify-content: space-between !important;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+.dir-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #33423d;
+  cursor: pointer;
+  > * {
+    margin-top: 0;
+  }
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: #017a60;
+  }
+}
+.dir-onglets {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e4eae7;
+  overflow-x: auto;
+}
+.dir-dash button.dir-onglet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #4f5f5a;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: transparent;
+    color: #14201c;
+  }
+  &.is-active {
+    color: #014d3c;
+    font-weight: 600;
+    border-bottom-color: #017a60;
+  }
+}
+.dir-onglet__count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eef2f0;
+  color: #33423d;
+  &.has-items {
+    background: #fff4d6;
+    color: #6b4e00;
+  }
+}
+.dir-table td {
+  vertical-align: top;
+}
+.dir-tag {
+  display: table;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #6b4e00;
+}
+.agent-delai.dir-delai--neutre {
+  background: #eef2f0;
+  color: #33423d;
+}
+.agent-delai.dir-delai--ambre {
+  background: #fff4d6;
+  color: #6b4e00;
+}
+.agent-delai.dir-delai--rouge {
+  background: #fdecea;
+  color: #8a1c12;
+}
+.dir-vide {
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #5b6b66;
+}
+
+// Graphiques côte à côte
+.dir-graphs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  > .agent-card {
+    flex: 1 1 340px;
+    min-width: 0;
+  }
+}
+.dir-orgs__list {
+  padding: 0 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dir-org {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #33423d;
+    }
+    strong {
+      font-weight: 600;
+    }
+  }
+  &__track {
+    height: 10px;
+    background: #eef2f0;
+    border-radius: 0 4px 4px 0;
+  }
+  &__bar {
+    height: 100%;
+    background: #017a60;
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+// Colonne de droite
+.dir-side--attention {
+  border-color: #ecd9a6 !important;
+}
+.agent-count.dir-count--ambre {
+  background: #fff4d6;
+  color: #6b4e00;
+}
+.dir-approuver {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #eef2f0;
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+}
+.dir-imprimer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dir-agents {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  th {
+    padding: 6px 0 6px 8px;
+    font-weight: 500;
+    color: #4f5f5a;
+    text-align: right;
+  }
+  td {
+    padding: 8px 0 8px 8px;
+    border-top: 1px solid #eef2f0;
+    text-align: right;
+  }
+  th:first-child,
+  td:first-child {
+    padding-left: 0;
+    text-align: left;
+  }
+  td:first-child {
+    font-weight: 500;
+  }
+}
+
+// Dossiers resoumis : étiquette et rappel du motif du rejet précédent
+.dir-tag.dir-tag--resoumis {
+  background: #e8f1fb;
+  color: #0b4a8b;
+}
+.dir-motif {
+  display: block;
+  margin-top: 4px;
+  max-width: 320px;
+  font-size: 12px;
+  color: #8a1c12;
+}
+
+// Tableau de bord administrateur (réutilise les styles agent- et dir-)
+.agent-badge.adm-badge--inactif {
+  background: #eef2f0;
+  color: #4f5f5a;
+}
+.adm-liste {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.adm-lien {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.adm-reservation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid #eef2f0;
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+}

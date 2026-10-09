@@ -1,0 +1,364 @@
+// Fiche détaillée d'une immatriculation (préfixe fiche-, sans effet sur les détails mutation / réforme)
+$fi-green: #017a60;
+$fi-green-dark: #014d3c;
+$fi-green-soft: #e6f4ee;
+$fi-ink: #14201c;
+$fi-text: #33423d;
+$fi-muted: #5b6b66;
+$fi-border: #dce3e0;
+$fi-font: "IBM Plex Sans", "Inter", system-ui, sans-serif;
+
+.fiche {
+  &,
+  * {
+    font-family: $fi-font;
+  }
+  width: 100%;
+  max-width: 1280px;
+  margin: 2em auto 1em;
+  padding: 0 24px 48px;
+  box-sizing: border-box;
+  color: $fi-ink;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  @include phone() {
+    padding: 0 12px 32px;
+  }
+  h1,
+  h2 {
+    font-family: $fi-font;
+  }
+  a {
+    color: #016b54;
+    &:hover {
+      color: $fi-green-dark;
+    }
+  }
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  &__titre {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  &__retour {
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  &__titre-ligne {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  &__numero {
+    margin: 0;
+    font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  &__sous-titre {
+    margin: 0;
+    font-size: 14px;
+    color: $fi-muted;
+  }
+  &__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  &__layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  &__main {
+    flex: 999 1 560px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  &__side {
+    flex: 1 1 300px;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    @include tablet() {
+      max-width: none;
+    }
+  }
+}
+
+.fiche-muted {
+  margin: 0;
+  font-size: 13px;
+  color: $fi-muted;
+}
+.fiche-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+}
+
+// Boutons (liens ou <button>)
+.fiche .fiche-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &--primary {
+    border: none;
+    background: $fi-green;
+    color: #fff;
+    &:hover:not(:disabled) {
+      background: $fi-green-dark;
+      color: #fff;
+    }
+  }
+  &--danger {
+    border: 1px solid #b42318;
+    background: #fff;
+    color: #b42318;
+    &:hover:not(:disabled) {
+      background: #fdecea;
+      color: #8a1c12;
+    }
+  }
+  &--lien {
+    height: 36px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: $fi-green-dark;
+    font-size: 13px;
+    &:hover {
+      background: $fi-green-soft;
+      color: $fi-green-dark;
+    }
+  }
+  &:disabled {
+    background: #c9d3cf !important;
+    border-color: #c9d3cf;
+    color: #fff;
+    cursor: not-allowed;
+  }
+}
+
+// Statut : icône + libellé
+.fiche-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  &--valide {
+    background: $fi-green-soft;
+    color: $fi-green-dark;
+  }
+  &--attente {
+    background: #fff4d6;
+    color: #6b4e00;
+  }
+  &--rejete {
+    background: #fdecea;
+    color: #8a1c12;
+  }
+  &--neutre {
+    background: #eef2f0;
+    color: $fi-text;
+  }
+  &--petit {
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+}
+
+// Messages (motif de rejet, organisme à approuver)
+.fiche-alerte {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  svg {
+    flex: none;
+    margin-top: 2px;
+    font-size: 18px;
+  }
+  &--rejet {
+    background: #fdecea;
+    color: #8a1c12;
+  }
+  &--attention {
+    background: #fff8e6;
+    color: #6b4e00;
+    a {
+      font-weight: 600;
+    }
+  }
+}
+
+// Cartes
+.fiche-carte {
+  background: #fff;
+  border: 1px solid $fi-border;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  &__titre {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+.fiche-plaque {
+  align-items: center;
+  padding: 24px;
+  background: #f6f8f7;
+  .license-plate {
+    margin: 0;
+  }
+}
+
+// Paires libellé / valeur
+.fiche-kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 24px;
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  dt {
+    font-size: 12px;
+    color: #4f5f5a;
+  }
+  dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  &--colonne {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Pièce jointe
+.fiche-fichier {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  &__icone {
+    flex: none;
+    width: 40px;
+    height: 48px;
+    border-radius: 6px;
+    background: #fdecea;
+    color: #b42318;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    &--img {
+      background: #e8f1fb;
+      color: #0b4a8b;
+    }
+  }
+  &__nom {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 500;
+    word-break: break-all;
+  }
+}
+
+// Détails d'une mutation : affectation actuelle → nouvelle affectation
+.mut-transfert {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  flex-wrap: wrap;
+  &__bloc {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid #dce3e0;
+    border-radius: 10px;
+    background: #f6f8f7;
+    strong {
+      font-size: 15px;
+    }
+    &--nouveau {
+      border-color: #a7d7c5;
+      background: #f1faf6;
+    }
+  }
+  &__etiquette {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #4f5f5a;
+  }
+  &__fleche {
+    align-self: center;
+    font-size: 24px;
+    color: #017a60;
+  }
+}
+
+// Réforme : vignette de la pièce d'identité du nouveau propriétaire
+.ref-piece {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px;
+  border: 1px solid #e1e8e5;
+  border-radius: 8px;
+  background: #f7f9f8;
+  cursor: pointer;
+  text-align: left;
+  img {
+    width: 240px;
+    max-width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+  &:hover { border-color: #017a60; }
+  &:focus-visible { outline: 2px solid #017a60; outline-offset: 2px; }
+}

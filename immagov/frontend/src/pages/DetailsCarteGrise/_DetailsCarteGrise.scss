@@ -1,0 +1,28 @@
+.details-carte-grise {
+  .print-btns {
+    margin: 1em 0;
+    button {
+      padding : 0.8em 0.8em;
+      font-size: 0.75rem;
+      &:last-child {
+        margin-left: 0.5em;
+        padding: 0.7em 0.8em;
+      }
+      svg {
+        // font-size: 1.1rem;
+        transform: translateY(1px);
+      }
+    }
+  }
+
+  .carte {
+    display: flex;
+    margin-top: 2em;
+    gap: 2em;
+    
+    @include desktop() {
+        flex-direction: column;
+        overflow-x: scroll;
+    }
+  }
+}

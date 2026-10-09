@@ -1,0 +1,12 @@
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2em;
+    p {
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: $century !important;
+        color: $darker-grey;
+    }
+}

@@ -1,0 +1,132 @@
+.step-components {
+  .image {
+    width: 120px;
+    height: 150px;
+    background-color: $white;
+    margin: 0.5em 0;
+
+    img {
+      height: 100%;
+      cursor: pointer;
+    }
+   
+  }
+
+  input,
+  select {
+    padding: 0.5em;
+    border: none;
+    width: 100%;
+    font-weight: 500;
+  }
+
+  .buttons {
+    margin-top: 1em;
+    .secondary {
+      margin-right: 0.5em;
+      margin-bottom: 0.5em;
+    }
+  }
+
+  .input-group,
+  .info-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1em;
+    margin-bottom: 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.069);
+  }
+
+  .info-group {
+    border-bottom: none;
+    > div {
+      display: flex;
+      flex-direction: column;
+      span {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: $dark-grey;
+      }
+      strong {
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .step-one {
+    .type {
+      margin: 0.5em 0 1em;
+      font-size: 0.85rem;
+      font-weight: 500;
+      width: 100%;
+    }
+  }
+
+  .step-files {
+    .files {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1em;
+      .file-wrapper {
+        display: flex;
+        flex-direction: column;
+        p {
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: $dark-grey;
+        }
+        .upload-btn-wrapper input[type="file"] {
+          position: absolute;
+          left: 0;
+          top: 0;
+          opacity: 0;
+        }
+        .upload-btn-wrapper {
+          position: relative;
+          overflow: hidden;
+          display: inline-block;
+        }
+        .btn {
+          color: $white;
+          background-color: $dark-grey;
+          padding: 0.5em 1em;
+          svg {
+            transform: translateY(1px);
+          }
+        }
+       &:nth-child(4){
+        .image {
+          background-color: transparent;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+       }
+      }
+    }
+    .buttons {
+      padding-top: 2em;
+      border-top: 1px solid rgba(0, 0, 0, 0.073);
+      margin-top: 2em;
+    }
+  }
+
+  //Reforme
+  .step-submit {
+    .summary {
+      .vehicle-info-summary {
+        margin-bottom: 2.5em;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.069);
+      }
+    }
+    .fond-dossier {
+      .image{
+        background-color: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      }  
+    }
+  }
+}

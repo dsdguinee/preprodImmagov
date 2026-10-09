@@ -1,0 +1,176 @@
+// Plaque d'immatriculation : toutes les tailles sont en cqw (% de la largeur de la plaque),
+// la plaque garde donc ses proportions (760 × 166) à toutes les largeurs.
+.plaque-wrap {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 480px; // ajustable avec la prop « largeur »
+}
+.plaque {
+  &,
+  * {
+    font-family: "Barlow", sans-serif;
+  }
+  width: 100%;
+  aspect-ratio: 760 / 166;
+  box-sizing: border-box;
+  display: flex;
+  border-radius: 1.6cqw;
+  overflow: hidden;
+  border: 3px solid #1a1a1a;
+  background: #fff;
+  color: #111;
+
+  &__band {
+    flex: none;
+    width: 14.2cqw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.05cqw;
+    background: #eef1ef;
+  }
+  &__armoiries {
+    width: 7.1cqw;
+    height: 7.9cqw;
+    object-fit: contain;
+  }
+  &__flag {
+    display: flex;
+    width: 6.3cqw;
+    height: 0.8cqw;
+    span {
+      flex: 1;
+    }
+    span:nth-child(1) {
+      background: #ce1126;
+    }
+    span:nth-child(2) {
+      background: #fcd116;
+    }
+    span:nth-child(3) {
+      background: #009460;
+    }
+  }
+  &__rg {
+    font-weight: 700;
+    font-size: 2.63cqw;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  &__center {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8cqw 1cqw;
+    overflow: hidden;
+    > * {
+      position: relative;
+    }
+  }
+  &__map {
+    position: absolute !important;
+    height: 150%;
+    top: -25%;
+    left: 50%;
+    transform: translateX(-50%);
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 0.16;
+  }
+  &__top {
+    font-weight: 600;
+    font-size: 1.84cqw;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  &__numero {
+    font-family: "Barlow Condensed", sans-serif !important;
+    font-weight: 600;
+    font-size: 12.1cqw;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  &__sigle {
+    font-weight: 700;
+    font-size: 2.9cqw;
+    letter-spacing: 0.3em;
+    line-height: 1.1;
+    margin-top: 0.3cqw;
+  }
+  &__logos {
+    display: flex;
+    align-items: center;
+    gap: 1.6cqw;
+    margin-top: 0.5cqw;
+    img {
+      height: 3.42cqw;
+      width: auto;
+    }
+  }
+  &__sep {
+    width: 2px;
+    height: 2.9cqw;
+    background: currentColor;
+  }
+  &__side {
+    flex: none;
+    width: 16.8cqw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.05cqw;
+    padding-right: 1.6cqw;
+  }
+  &__qr {
+    width: 12.6cqw;
+    height: 12.6cqw;
+    box-sizing: border-box;
+    border-radius: 1.3cqw;
+    background: #fff;
+    border: 2px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    img {
+      width: 10cqw;
+      height: 10cqw;
+      object-fit: contain;
+    }
+  }
+  &__qr-vide {
+    color: #a9b8b2;
+    font-weight: 700;
+    font-size: 2.4cqw;
+  }
+  &__sec {
+    font-weight: 700;
+    font-size: 1.32cqw;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  // VA : fond vert, texte et logos blancs
+  &--va {
+    border-color: #0b5e3c;
+    background: #0e7a4e;
+    color: #fff;
+    .plaque__band {
+      background: #0a6440;
+    }
+    .plaque__map {
+      filter: brightness(0) invert(1);
+      opacity: 0.09;
+    }
+    .plaque__logos img {
+      filter: brightness(0) invert(1);
+    }
+  }
+}

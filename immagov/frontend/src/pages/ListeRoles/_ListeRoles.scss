@@ -1,0 +1,13 @@
+// Badge des rôles de base (Directeur, Direction Générale GG, Agent, Admin) : non modifiables
+.role-de-base {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e6f4ee;
+  color: #014d3c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: help;
+}

@@ -1,0 +1,708 @@
+// Nouvelle immatriculation : styles propres à la page (préfixe immat-), sans effet sur les autres écrans
+$immat-green: #017a60; // vert de l'application, assombri pour un texte blanc lisible
+$immat-green-dark: #014d3c;
+$immat-green-soft: #e6f4ee;
+$immat-ink: #14201c;
+$immat-text: #33423d;
+$immat-muted: #5b6b66;
+$immat-border: #dce3e0;
+$immat-input-border: #cbd5d1;
+$immat-ground: #eef2f0;
+$immat-red: #b42318;
+$immat-blue: #0b4a8b;
+$immat-blue-soft: #e8f1fb;
+$immat-font: "IBM Plex Sans", "Inter", system-ui, sans-serif;
+$immat-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+.immat-page {
+  &,
+  * {
+    font-family: $immat-font;
+  }
+  color: $immat-ink;
+  width: 100%;
+  max-width: 1280px;
+  min-height: 80vh;
+  margin: 2em auto 1em;
+  box-sizing: border-box;
+  padding: 8px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  @include phone() {
+    padding: 8px 12px 32px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: $immat-font;
+  }
+}
+
+// En-tête : titre + progression
+.immat-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  &__title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  &__sub {
+    margin: 6px 0 0;
+    color: $immat-muted;
+    font-size: 14px;
+  }
+}
+.immat-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+  &__labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: $immat-muted;
+  }
+  &__track {
+    height: 6px;
+    border-radius: 999px;
+    background: $immat-border;
+    overflow: hidden;
+  }
+  &__bar {
+    height: 100%;
+    border-radius: 999px;
+    background: $immat-green;
+    transition: width 0.3s ease;
+  }
+}
+
+// Cartes et mise en page 3 colonnes
+.immat-card {
+  background: #fff;
+  border: 1px solid $immat-border;
+  border-radius: 12px;
+}
+.immat-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+.immat-main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.immat-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  @include phone() {
+    padding: 18px;
+  }
+}
+.immat-overline {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4f5f5a;
+}
+.immat-muted {
+  margin: 0;
+  color: $immat-muted;
+  font-size: 13px;
+}
+.immat-mono {
+  font-family: $immat-mono !important;
+}
+.immat-divider {
+  height: 1px;
+  background: #e4eae7;
+}
+
+// Étapes (colonne gauche)
+.immat-stepper {
+  flex: 1 1 220px;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid $immat-border;
+  border-radius: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  @include tablet() {
+    max-width: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    min-height: 52px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: $immat-ink;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+    &:hover:not(:disabled) {
+      background: #f3f6f5;
+    }
+    &:disabled {
+      background: transparent !important;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    &.is-active {
+      background: $immat-green-soft;
+    }
+  }
+  &__dot {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    background: $immat-ground;
+    color: #4f5f5a;
+    box-sizing: border-box;
+  }
+  &__item.is-active &__dot {
+    background: #fff;
+    color: $immat-green;
+    border: 2px solid $immat-green;
+  }
+  &__item.is-done &__dot {
+    background: $immat-green;
+    color: #fff;
+  }
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  &__label {
+    font-weight: 600;
+  }
+  &__hint {
+    font-size: 12px;
+    color: $immat-muted;
+  }
+}
+
+// Résumé du dossier (colonne droite)
+.immat-dossier {
+  flex: 1 1 240px;
+  max-width: 300px;
+  @include tablet() {
+    max-width: none;
+  }
+  &__card {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+    word-break: break-all;
+  }
+  &__label {
+    font-size: 12px;
+    color: #4f5f5a;
+  }
+}
+.immat-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.immat-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  &--green {
+    background: $immat-green-soft;
+    color: $immat-green-dark;
+  }
+  &--blue {
+    background: $immat-blue-soft;
+    color: $immat-blue;
+  }
+}
+
+// Sections et champs
+.immat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  &__desc {
+    margin: 0;
+    font-size: 14px;
+    color: $immat-muted;
+  }
+}
+.immat-grid {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+.immat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: $immat-text;
+  > * {
+    margin-top: 0; // annule la règle globale « label > * »
+  }
+  &__label {
+    display: block;
+  }
+  input,
+  select {
+    font-family: $immat-font;
+    font-weight: 400;
+    font-size: 14px;
+    color: $immat-ink;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid $immat-input-border;
+    border-radius: 8px;
+    background: #fff;
+    width: 100%;
+    &:focus {
+      outline: 2px solid $immat-green;
+      outline-offset: 1px;
+      border-color: $immat-green;
+    }
+    &[readonly],
+    &:disabled {
+      background: #f3f6f5;
+      color: $immat-text;
+    }
+  }
+  &__error {
+    color: $immat-red;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  &__static {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: #f3f6f5;
+    font-weight: 600;
+    font-size: 14px;
+    color: $immat-ink;
+  }
+}
+.immat-req {
+  color: $immat-red;
+}
+
+// Boutons
+.immat-page button.immat-btn {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  &--primary {
+    border: none;
+    background: $immat-green;
+    color: #fff;
+    &:hover:not(:disabled) {
+      background: $immat-green-dark;
+    }
+  }
+  &--secondary {
+    border: 1px solid $immat-input-border;
+    background: #fff;
+    color: $immat-ink;
+    &:hover {
+      background: #f3f6f5;
+      color: $immat-ink;
+    }
+  }
+  &--outline {
+    border: 1px solid $immat-green;
+    background: #fff;
+    color: $immat-green-dark;
+    &:hover {
+      background: $immat-green-soft;
+    }
+  }
+  &--link {
+    height: 36px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: $immat-green-dark;
+    font-size: 13px;
+  }
+  &:disabled {
+    background: #a9b8b2 !important;
+    color: #fff;
+    cursor: not-allowed;
+  }
+}
+.immat-page .immat-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  &__btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid $immat-input-border;
+    background: #fff;
+    color: $immat-text;
+    cursor: pointer;
+    &:hover {
+      background: #f3f6f5;
+      color: $immat-text;
+    }
+    &.is-selected {
+      border-color: $immat-green;
+      background: $immat-green-soft;
+      color: $immat-green-dark;
+      font-weight: 600;
+    }
+  }
+}
+
+// Pied d'étape
+.immat-actions {
+  border-top: 1px solid $immat-border;
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #fafbfb;
+  border-radius: 0 0 12px 12px;
+  &__hint {
+    font-size: 12px;
+    color: $immat-muted;
+  }
+}
+
+// Messages
+.immat-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  &--error {
+    background: #fdecea;
+    color: #8a1c12;
+  }
+  &--warning {
+    background: #fff8e6;
+    color: #6b4e00;
+  }
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+}
+.immat-success {
+  border: 1px solid #a7d7c5;
+  background: #f1faf6;
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: $immat-green-dark;
+  }
+}
+.immat-kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 20px;
+  font-size: 13px;
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    word-break: break-word;
+  }
+  span {
+    color: #4f5f5a;
+  }
+  strong {
+    font-weight: 600;
+  }
+}
+.immat-pill {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: $immat-blue-soft;
+  color: $immat-blue;
+  font-size: 13px;
+  font-weight: 600;
+}
+.immat-other {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f6f8f7;
+  border: 1px dashed $immat-input-border;
+}
+.immat-other__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 15px;
+}
+.immat-badge--amber {
+  background: #fff4d6;
+  color: #7a5600;
+}
+// Organismes existants proches du nom saisi
+.immat-suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff8e6;
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b4e00;
+  }
+}
+.immat-page button.immat-suggest__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ecd9a6;
+  background: #fff;
+  color: $immat-ink;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  &:hover {
+    border-color: $immat-green;
+    background: $immat-green-soft;
+    color: $immat-ink;
+  }
+}
+.immat-suggest__action {
+  flex: none;
+  color: $immat-green-dark;
+  font-weight: 600;
+}
+
+// Pièce jointe (étape 4)
+.immat-dropzone {
+  position: relative;
+  border: 2px dashed #a9b8b2;
+  border-radius: 12px;
+  background: #f8faf9;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  cursor: pointer;
+  &:hover,
+  &:focus-within {
+    border-color: $immat-green;
+    background: $immat-green-soft;
+  }
+  input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+.immat-file {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid $immat-border;
+  border-radius: 10px;
+  &__icon {
+    width: 44px;
+    height: 52px;
+    flex: none;
+    border-radius: 6px;
+    background: #fdecea;
+    color: $immat-red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    &--img {
+      background: $immat-blue-soft;
+      color: $immat-blue;
+    }
+  }
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    span:first-child {
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-all;
+    }
+  }
+}
+
+// Récapitulatif (étape 5)
+.immat-recap {
+  border: 1px solid $immat-border;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+// Liens présentés comme des boutons (ex. « Annuler ») et lien de retour
+.immat-page a.immat-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  &.immat-btn--secondary {
+    border: 1px solid $immat-input-border;
+    background: #fff;
+    color: $immat-ink;
+    &:hover {
+      background: #f3f6f5;
+    }
+  }
+}
+.immat-retour {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #016b54;
+  text-decoration: none;
+  &:hover {
+    color: $immat-green-dark;
+  }
+}
+
+// Actions de rejet (page de validation d'une proposition d'organisme)
+.immat-actions__groupe {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.immat-page button.immat-btn--danger {
+  border: 1px solid #b42318;
+  background: #fff;
+  color: #b42318;
+  &:hover:not(:disabled) {
+    background: #fdecea;
+    color: #8a1c12;
+  }
+}
+.immat-page button.immat-btn--danger-plein {
+  border: none;
+  background: #b42318;
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: #8a1c12;
+  }
+}
+.immat-rejet {
+  border-color: #f1c6c0;
+}
