@@ -1,9 +1,10 @@
 .DS_Store
 node_modules/
 vendor/
-.env.*
-.env-*
-!.env.example
+.env
+# .env.*
+# .env-*
+# !.env.example
 *.log
 *.map
 storage/framework/cache/data/
