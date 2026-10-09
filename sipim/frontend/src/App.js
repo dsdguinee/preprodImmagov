@@ -18,6 +18,7 @@ import SideMenu from "./components/SideMenu/SideMenu";
 import LoginProtected from "./services/Auth/LoginProtected";
 import Connected from "./services/Auth/Connected";
 import Spinner from "./components/Spinner/Spinner";
+import ChargementPage from "./components/Spinner/ChargementPage";
 import Api from "./services/Api";
 import { UserContext,ElementContext } from "./services/Context/Context";
 import { Toaster } from 'react-hot-toast';
@@ -101,8 +102,9 @@ function App() {
       <UserContext.Provider value={{user,setUser,userRole,agence,decoupage,refreshDecoupage,privileges,changePrivilege,setChangePrivilege}} >
         <Navbar />
           <SideMenu />
-          <Spinner />
           <ElementContext.Provider value={{elementsData}} >
+            <ChargementPage>
+              <Spinner />
               <Routes>
                 <Route path="*" element={<h2>Pas de Page Correspondate: 404!</h2>} />
                 <Route path="/" element={<Connected><Login /></Connected>} />
@@ -134,7 +136,8 @@ function App() {
                   <Route path="settings" element={<UserSettings />} />
                 </Route>
               </Routes>
-           </ElementContext.Provider>    
+            </ChargementPage>
+           </ElementContext.Provider>
         <Footer />
       </UserContext.Provider>
     </div>

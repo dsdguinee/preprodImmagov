@@ -1,4 +1,5 @@
 import * as axios from "axios";
+import { suivreRequetes } from "./chargement";
 export default class Api {
     constructor() {
       this.api_token = localStorage.getItem('token');
@@ -17,11 +18,12 @@ export default class Api {
         headers.Authorization = `Bearer ${this.api_token}`;
       }
   
-      this.client = axios.create({
+      // Requêtes suivies : la page s'affiche après la réponse du backend (ChargementPage)
+      this.client = suivreRequetes(axios.create({
         baseURL: this.api_url,
         //timeout: 31000,
         headers: headers,
-      });
+      }));
   
       return this.client;
     };

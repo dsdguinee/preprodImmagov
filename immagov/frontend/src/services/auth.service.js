@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { suivreRequetes } from './chargement';
 export function getConnexion(){
   try{
-    return getTokent() ?  axios.create({
+    return suivreRequetes(getTokent() ?  axios.create({
         baseURL:`${process.env.REACT_APP_URL}/api/`,
         headers:{
           "Cache-Control":"no-Cache",
@@ -16,7 +17,7 @@ export function getConnexion(){
           "Cache-Control":"no-Cache",
           "Content-Type":"application/json",
         }
-      });
+      }));
     }
     catch(ex){
       localStorage.removeItem('token');
@@ -24,7 +25,7 @@ export function getConnexion(){
 }
 
 export function getConnexionFormData(){
-  return getTokent() ?  axios.create({
+  return suivreRequetes(getTokent() ?  axios.create({
       baseURL:`${process.env.REACT_APP_URL}/api/`,
       headers:{
         "Cache-Control":"no-Cache",
@@ -40,7 +41,7 @@ export function getConnexionFormData(){
         "Cache-Control":"no-Cache",
         "Content-Type":"application/json",
       }
-    })
+    }))
 }
 
 export function responseFormat(data, status){

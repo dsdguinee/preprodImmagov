@@ -35,6 +35,19 @@ class EcashController extends Controller
         }
         return $expression;
     }
+
+    const MESSAGE_SERVICES_SEULS = "Ce paiement ne concerne que la vignette et/ou l'autorisation de transport : il ne peut pas servir à une immatriculation.";
+
+    /**
+     * Paiement de vignette et/ou d'autorisation de transport seules : ni carte grise, ni plaque,
+     * ni mutation / reforme. Il ne peut pas servir a une immatriculation.
+     */
+    private function servicesSeuls($paiement){
+        return (int) $paiement->typeCg === 0
+            && !in_array($paiement->type_plaque, ['EP', 'VA'])
+            && !in_array($paiement->type_document, ['mutation', 'reforme']);
+    }
+
     public function getpaiement(Request $request){
         try {
            // Clé vérifiée par le middleware external.key (en-tête X-API-KEY)
@@ -76,6 +89,8 @@ class EcashController extends Controller
               if (count($paiements) > 0) {
 
                   $paiements = $paiements[count($paiements) - 1];
+                  if ($this->servicesSeuls($paiements))
+                      return response()->json(['success' => false, 'status' => Response::HTTP_UNPROCESSABLE_ENTITY, 'messages' => self::MESSAGE_SERVICES_SEULS]);
 
                   if ($paiements) {
                       if ($paiements->type_document !== 'IT') {
@@ -136,6 +151,8 @@ class EcashController extends Controller
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND, 'messages' => 'Numéro de référence du paiement non trouvé']);
             if ((int) $paiement->status !== 1)
                 return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => 'Ce paiement n\'est pas validé : la référence ne peut pas être utilisée.']);
+            if ($this->servicesSeuls($paiement))
+                return response()->json(['success' => false, 'status' => Response::HTTP_UNPROCESSABLE_ENTITY, 'messages' => self::MESSAGE_SERVICES_SEULS]);
 
             // Mise à jour conditionnelle : une seule utilisation possible, même en cas d'appels simultanés
             $maj = DB::table('paiements')->where('paiement_id', $paiement->paiement_id)->where('utilise', false)->update([

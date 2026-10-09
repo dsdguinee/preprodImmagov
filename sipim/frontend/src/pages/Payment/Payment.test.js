@@ -11,7 +11,10 @@ const elementsData = {
     { typecg_id: 3, categorie_id: 2, type: 1, signe: "<=", capacite: "7", unite: "CV", libellepoids: null, nomType: null, montant: "800000.00" },
     { typecg_id: 4, categorie_id: 2, type: 1, signe: ">,<=", capacite: "7,12", unite: "CV", libellepoids: null, nomType: null, montant: "1000000.00" },
   ],
-  typeVignette: [{ typevg_id: 2, typecg_id: 2, nomType: "Voiture jusqu'à 12 CV", montant: "200000.0" }],
+  typeVignette: [
+    { typevg_id: 2, typecg_id: 2, nomType: "Voiture jusqu'à 12 CV", montant: "200000.0", signe: "<=", capacite: "12", unite: "CV" },
+    { typevg_id: 24, typecg_id: 2, nomType: "Voiture entre 13 à 19 CV", montant: "250000.0", signe: ">,<=", capacite: "12,19", unite: "CV" },
+  ],
   autorisations: [],
 };
 const privileges = [{ privilege_id: 22, privilege: "Paiement EP" }];
@@ -102,6 +105,51 @@ describe("Formulaire de nouveau paiement", () => {
     fireEvent.blur(chassis);
     expect(await screen.findByText(/Ce véhicule a été réformé \(réf. REFREFORME\)/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Valider le paiement" })).toBeDisabled();
+  });
+
+  describe("Châssis déjà immatriculé ou opération en cours", () => {
+    const historique = (payment) => {
+      mockApiData.mockImplementation((methode) =>
+        Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 503 } } : { status: 200, payment }));
+      const chassis = screen.getByLabelText("Numéro de châssis");
+      fireEvent.change(chassis, { target: { value: "jtmhv02j104242881" } });
+      fireEvent.blur(chassis);
+    };
+
+    it("masque immatriculation et réimmatriculation et ne paie que vignette / autorisation", async () => {
+      historique([{ reference: "REFIMMAT", modeImma: 1, typeCg: 4, type_document: "cartegrise", status: 1, utilise: 1, isautoriser: 0,
+        categorie_id: 2, nomCategorie: "Vehicules legers", pf: 15, pv: 0, cu: 0 }]);
+      expect(await screen.findByText(/Véhicule déjà immatriculé \(réf. REFIMMAT\)/)).toBeInTheDocument();
+      expect(screen.queryByLabelText("Immatriculation")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Réimmatriculation")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Mutation")).toBeInTheDocument();
+      expect(screen.getByLabelText("Autres")).toBeChecked();
+
+      fireEvent.click(screen.getByLabelText(/Particulier/));
+      fireEvent.change(screen.getByLabelText("Prénom et nom"), { target: { value: "mamadou diallo" } });
+      fireEvent.change(screen.getByLabelText("Téléphone"), { target: { value: "622451890" } });
+      // Catégorie et puissance fiscale reprises : seule la vignette de 13 à 19 CV est proposée
+      expect(screen.getByText(/Puissance fiscale : 15 CV/)).toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: /jusqu'à 12 CV/ })).not.toBeInTheDocument();
+      expect(screen.getByRole("option", { name: /entre 13 à 19 CV/ })).toBeInTheDocument();
+      expect(screen.queryByText("Carte grise")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/Plaque EP/)).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Valider le paiement" }));
+      fireEvent.click(screen.getByRole("button", { name: "Confirmer" }));
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/payment/invoice/503"));
+      const [, url, formData] = mockApiData.mock.calls.find(([m]) => m === "post");
+      expect(url).toBe("/paiement/new");
+      expect(Object.fromEntries(formData.entries())).toMatchObject({ categorieCg: "2", pf: "15", typeCg: "0", typeVignette: "24", autorisation_id: "0", document: "Ordinaire" });
+    });
+
+    it("ne propose que Autres tant qu'une opération est en cours", async () => {
+      historique([{ reference: "REFENCOURS", modeImma: 1, typeCg: 3, type_document: "cartegrise", status: 1, utilise: 0, isautoriser: 0 }]);
+      expect(await screen.findByText(/Immatriculation en cours \(réf. REFENCOURS\)/)).toBeInTheDocument();
+      expect(screen.getByLabelText("Autres")).toBeChecked();
+      ["Immatriculation", "Réimmatriculation", "Mutation", "Réforme"].forEach((o) =>
+        expect(screen.queryByLabelText(o)).not.toBeInTheDocument());
+    });
   });
 
   describe("Mutation et réforme", () => {

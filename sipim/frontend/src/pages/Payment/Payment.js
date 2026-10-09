@@ -32,16 +32,25 @@ const PAIEMENT_VIDE = {
   isIT: false, isEP: false, isVA: false, vignetteExo: false, dateExpCg: "", ancienNumMat: "", isNextStep: 1,
 };
 const DOCUMENTS_VIDES = { cg: false, vg: false, au: false };
-// Immatriculation / réimmatriculation (modeImma) ou opération sur un véhicule déjà immatriculé
+// Immatriculation / réimmatriculation (modeImma), opération sur un véhicule déjà immatriculé,
+// ou autres services (vignette, autorisation de transport) sans carte grise ni plaque
 const OPERATIONS = [
   { value: "1", label: "Immatriculation" },
   { value: "2", label: "Réimmatriculation" },
   { value: "mutation", label: "Mutation" },
   { value: "reforme", label: "Réforme" },
+  { value: "autres", label: "Autres" },
 ];
+// Opération en cours : seulement Autres ; châssis déjà immatriculé : plus d'immatriculation / réimmatriculation
+const operationsPour = (info) => info?.enCours ? OPERATIONS.filter((o) => o.value === "autres")
+  : info?.immatricule ? OPERATIONS.filter((o) => !["1", "2"].includes(o.value)) : OPERATIONS;
 
 const aLePrivilege = (privileges, nom) => privileges?.some((p) => p.privilege === nom);
 const positif = (v) => parseFloat(v) > 0;
+// Immatriculation / réimmatriculation (carte grise ou plaque), mutation ou réforme
+const estOperation = (x) => Number(x.typeCg) !== 0 || ["EP", "VA"].includes(x.type_plaque) || ["mutation", "reforme"].includes(x.type_document);
+// Puissance fiscale enregistrée (CV) ; null si inconnue
+const puissanceEnregistree = (v) => (positif(v.pf) ? parseInt(v.pf, 10) : null);
 
 const Payment = () => {
   const api = new Api();
@@ -62,6 +71,7 @@ const Payment = () => {
   const [vehicule, setVehicule] = useState();
   const [vehiculeErreur, setVehiculeErreur] = useState("");
   const [montantReforme, setMontantReforme] = useState("");
+  const [autres, setAutres] = useState(false);
 
   const maj = (champs) => setP((prev) => ({ ...prev, ...champs }));
   const toucher = (champ) => setTouches((t) => ({ ...t, [champ]: true }));
@@ -71,6 +81,12 @@ const Payment = () => {
   const transport = p.modeExp === "Transport";
   const isVA = plaque === "VA";
   const surVehicule = !!operationVehicule;
+  const choix = operationVehicule || (autres ? "autres" : p.modeImma);
+  // Autres, ou opération en cours sur ce châssis : ni carte grise ni plaque, seulement vignette / autorisation
+  const sansImmat = !surVehicule && (autres || !!chassisInfo?.enCours);
+  // Autres pour un véhicule déjà enregistré : catégorie et capacité reprises, non modifiables
+  const vehiculeConnu = sansImmat ? chassisInfo?.vehicule : undefined;
+  const puissanceConnue = vehiculeConnu ? puissanceEnregistree(vehiculeConnu) : null;
 
   // Listes filtrées comme dans l'ancien formulaire
   const vignettes = useMemo(() => {
@@ -81,8 +97,10 @@ const Payment = () => {
       if (cat !== 3) liste = liste.filter((v) => v.nomType.indexOf("transport") === -1);
       if (!exoneree) liste = liste.filter((v) => v.nomType !== "Vignette Exonérée");
     }
+    // Seules les vignettes dont la tranche de puissance fiscale correspond à celle enregistrée (sans tranche : toujours proposée)
+    if (puissanceConnue !== null) liste = liste.filter((v) => v.unite !== "CV" || trancheCorrespond(v, puissanceConnue) !== false);
     return liste;
-  }, [elementsData, cat, transport, privileges]);
+  }, [elementsData, cat, transport, privileges, puissanceConnue]);
   const autorisations = useMemo(
     () => (elementsData && cat ? elementsData.autorisations.filter((a) => parseInt(a.categorie_id, 10) === cat) : []),
     [elementsData, cat]
@@ -121,12 +139,16 @@ const Payment = () => {
   }, [autorisations]);
 
   // Changements qui invalident d'autres choix
-  const choisirOperation = (v) => {
+  const appliquerOperation = (v) => {
     const operation = v === "mutation" || v === "reforme" ? v : "";
     setOperationVehicule(operation);
-    if (!operation) maj({ modeImma: v, typeCg: 0 });
+    setAutres(v === "autres");
+    if (!operation) maj(v === "autres" ? { typeCg: 0 } : { modeImma: v, typeCg: 0 });
     setVehicule(); setVehiculeErreur(""); setMontantReforme("");
-    if (p.chassis.trim().length >= 10) verifierChassis(operation);
+  };
+  const choisirOperation = (v) => {
+    appliquerOperation(v);
+    if (p.chassis.trim().length >= 10) verifierChassis(v);
   };
   const choisirTypeClient = (v) => {
     maj({ typeClient: v, nif: v === "Société" ? p.nif : "" });
@@ -138,32 +160,62 @@ const Payment = () => {
   };
   const choisirCategorie = (v) => {
     maj({ categorieCg: v, typeCg: 0, typeVignette: 0, autorisation_id: 0, pf: "", nbrePlace: "", pv: "", cu: "", ptra: "" });
-    setDocs({ cg: true, vg: true, au: false });
+    setDocs({ cg: !sansImmat, vg: true, au: false });
   };
 
-  // Le châssis a-t-il déjà un paiement non autorisé ? (le serveur refuserait le nouveau paiement)
-  const verifierChassis = async (operation = operationVehicule) => {
+  // Historique du châssis : réforme, opération en cours, immatriculation déjà faite, paiement non autorisé
+  const verifierChassis = async (operation = choix) => {
     toucher("chassis");
     const valeur = p.chassis.trim();
     setChassisInfo(); setVehicule(); setVehiculeErreur("");
     if (valeur.length < 10) return;
-    if (operation) {
-      // Mutation / réforme : le châssis doit avoir servi à une immatriculation ou réimmatriculation
-      const resp = await api.apiData("get", `/paiement/vehicule-utilise/${encodeURIComponent(valeur)}`);
-      if (resp?.status === 200) setVehicule(resp.vehicule);
-      else setVehiculeErreur(resp?.messages?.numChassis?.[0] || "Vérification du châssis impossible. Réessayez.");
-      return;
-    }
     const resp = await api.apiData("get", `/paiement/getpaiementByNumChassis/${encodeURIComponent(valeur)}`);
+    const paiements = [...(resp?.payment || [])].reverse(); // du plus récent au plus ancien
     // Véhicule réformé (réforme validée ou en attente) : plus aucun paiement possible
-    const reforme = resp?.payment?.find((x) => x.type_document === "reforme" && [0, 1].includes(Number(x.status)));
-    if (reforme) {
-      setChassisInfo({ reference: reforme.reference, bloquant: true, reforme: true });
-      return;
+    const reforme = paiements.find((x) => x.type_document === "reforme" && [0, 1].includes(Number(x.status)));
+    // Immatriculation, réimmatriculation, mutation ou réforme payée mais pas encore utilisée par immagov :
+    // seules la vignette et l'autorisation de transport restent payables
+    const enCours = paiements.find((x) => [0, 1].includes(Number(x.status)) && !Number(x.utilise) && estOperation(x));
+    // Immatriculation / réimmatriculation déjà utilisée par immagov : le véhicule est immatriculé
+    const immatricule = paiements.find((x) => Number(x.utilise) && Number(x.status) === 1
+      && ["1", "2"].includes(String(x.modeImma)) && !["mutation", "reforme"].includes(x.type_document));
+    // Véhicule tel qu'enregistré par sa dernière opération non rejetée
+    const vehiculeRef = paiements.find((x) => [0, 1].includes(Number(x.status)) && estOperation(x));
+    const dernier = paiements[0];
+    const info = reforme ? { reference: reforme.reference, bloquant: true, reforme: true }
+      : dernier && {
+        reference: dernier.reference, bloquant: dernier.isautoriser === 0,
+        enCours: enCours && {
+          reference: enCours.reference,
+          libelle: LIBELLES_OPERATION[enCours.type_document] || (String(enCours.modeImma) === "2" ? "Réimmatriculation" : "Immatriculation"),
+        },
+        immatricule: immatricule && { reference: immatricule.reference },
+        vehicule: vehiculeRef,
+      };
+    setChassisInfo(info);
+    // Opération choisie devenue impossible pour ce châssis : on bascule sur Autres
+    if (!reforme && !operationsPour(info).some((o) => o.value === operation)) {
+      operation = "autres";
+      appliquerOperation(operation);
     }
-    const dernier = resp?.payment?.[resp.payment.length - 1];
-    if (dernier) setChassisInfo({ reference: dernier.reference, bloquant: dernier.isautoriser === 0 });
+    if (operation === "mutation" || operation === "reforme") {
+      // Mutation / réforme : le châssis doit avoir servi à une immatriculation ou réimmatriculation
+      const vResp = await api.apiData("get", `/paiement/vehicule-utilise/${encodeURIComponent(valeur)}`);
+      if (vResp?.status === 200) setVehicule(vResp.vehicule);
+      else setVehiculeErreur(vResp?.messages?.numChassis?.[0] || "Vérification du châssis impossible. Réessayez.");
+    }
   };
+  useEffect(() => {
+    if (!sansImmat) return;
+    setDocs((d) => ({ ...d, cg: false }));
+    setPlaque("");
+  }, [sansImmat]);
+  useEffect(() => {
+    if (!vehiculeConnu) return;
+    const { categorie_id, pf, nbrePlace, pv, cu, ptra } = vehiculeConnu;
+    if (String(categorie_id) !== String(p.categorieCg)) setDocs({ cg: false, vg: true, au: false });
+    maj({ categorieCg: categorie_id, pf: pf || "", nbrePlace: nbrePlace || "", pv: pv || "", cu: cu || "", ptra: ptra || "" });
+  }, [vehiculeConnu]);
 
   // Validation
   const telValide = /^6\d{8}$/.test(p.tel);
@@ -174,7 +226,8 @@ const Payment = () => {
     chassis: p.chassis.trim().length < 10 ? "Le numéro de châssis compte au moins 10 caractères."
       : surVehicule ? vehiculeErreur
       : chassisInfo?.reforme ? `Ce véhicule a été réformé (réf. ${chassisInfo.reference}) : aucun paiement n'est plus possible pour ce châssis.`
-      : chassisInfo?.bloquant && `Ce véhicule a déjà un paiement non autorisé (réf. ${chassisInfo.reference}).`,
+      : chassisInfo?.bloquant && (docs.cg || plaque)
+        && `Ce véhicule a déjà un paiement non autorisé (réf. ${chassisInfo.reference}) : seules la vignette et l'autorisation de transport peuvent être payées.`,
   };
   const montantReformeSaisi = parseInt(montantReforme, 10) || 0;
   const erreurReforme = operationVehicule === "reforme" && montantReforme !== "" && montantReformeSaisi < MONTANT_MIN_REFORME
@@ -182,7 +235,8 @@ const Payment = () => {
   const operationOk = operationVehicule === "mutation" ? !!vehicule
     : operationVehicule === "reforme" && !!vehicule && montantReformeSaisi >= MONTANT_MIN_REFORME;
   const clientOk = !!p.typeClient && !erreursChamps.fullName && !erreursChamps.tel && !erreursChamps.nif;
-  const capaciteOk = isVA || (mesure && (mesure.poids ? positif(p.pv) && positif(p.cu) && positif(p.ptra) : valeurCapacite !== null));
+  // Capacité inutile sans carte grise (Autres)
+  const capaciteOk = isVA || sansImmat || (mesure && (mesure.poids ? positif(p.pv) && positif(p.cu) && positif(p.ptra) : valeurCapacite !== null));
   const vehiculeOk = !erreursChamps.chassis && !!cat && capaciteOk;
   const docsActifs = isVA ? [] : ["cg", "vg", "au"].filter((k) => docs[k]);
   const documentsOk = (docsActifs.length > 0 || isVA)
@@ -216,7 +270,7 @@ const Payment = () => {
 
   const recommencer = () => {
     setP(PAIEMENT_VIDE); setDocs(DOCUMENTS_VIDES); setPlaque(""); setTouches({}); setChassisInfo(); setErreurs();
-    setOperationVehicule(""); setVehicule(); setVehiculeErreur(""); setMontantReforme("");
+    setOperationVehicule(""); setVehicule(); setVehiculeErreur(""); setMontantReforme(""); setAutres(false);
   };
 
   const payer = async () => {
@@ -293,14 +347,16 @@ const Payment = () => {
           <FormSection numero={2} titre="Véhicule" complete={vehiculeOk}>
             <div className="fk-grid">
               <Field label="Numéro de châssis" htmlFor="chassis" erreur={erreurVisible("chassis")}
-                hint={chassisInfo && !chassisInfo.bloquant ? `Paiement précédent autorisé (réf. ${chassisInfo.reference}).` : undefined}>
+                hint={chassisInfo?.enCours ? `${chassisInfo.enCours.libelle} en cours (réf. ${chassisInfo.enCours.reference}) : seules la vignette et l'autorisation de transport peuvent être payées.`
+                  : chassisInfo?.immatricule ? `Véhicule déjà immatriculé (réf. ${chassisInfo.immatricule.reference}) : mutation, réforme ou autres services.`
+                  : chassisInfo && !chassisInfo.bloquant ? `Paiement précédent autorisé (réf. ${chassisInfo.reference}).` : undefined}>
                 <input id="chassis" className="mono" value={p.chassis} placeholder="Ex. VF1RFB00X62345678" maxLength={17}
                   onChange={(e) => { maj({ chassis: e.target.value.toUpperCase() }); setChassisInfo(); setVehicule(); setVehiculeErreur(""); }}
                   onBlur={() => verifierChassis()}
                   aria-invalid={!!erreurVisible("chassis")} />
               </Field>
-              <SegmentedControl name="modeImma" label="Opération" value={operationVehicule || p.modeImma} onChange={choisirOperation}
-                options={OPERATIONS} />
+              <SegmentedControl name="modeImma" label="Opération" value={choix} onChange={choisirOperation}
+                options={operationsPour(chassisInfo)} />
             </div>
             {surVehicule && vehicule && (
               <div className="payment-vehicule" role="status">
@@ -313,7 +369,16 @@ const Payment = () => {
                 <span>Propriétaire enregistré : {vehicule.fullName}</span>
               </div>
             )}
-            {!surVehicule && (
+            {vehiculeConnu && (
+              <div className="payment-vehicule" role="status">
+                <b>Véhicule enregistré · {vehiculeConnu.nomCategorie}</b>
+                <span>
+                  {puissanceConnue !== null ? `Puissance fiscale : ${puissanceConnue} CV` : "Puissance fiscale non enregistrée"}
+                  {` · réf. ${vehiculeConnu.reference}`}
+                </span>
+              </div>
+            )}
+            {!surVehicule && !vehiculeConnu && (
             <div className="fk-seg-wrap">
               <span className="fk-label">Catégorie</span>
               <ChoiceTiles name="categorieCg" label="Catégorie" value={p.categorieCg} onChange={choisirCategorie}
@@ -325,7 +390,7 @@ const Payment = () => {
             </div>
             )}
 
-            {mesure && !isVA && !surVehicule && (
+            {mesure && !isVA && !surVehicule && !sansImmat && (
               <div className="fk-grid">
                 {mesure.poids ? (
                   <>
@@ -385,6 +450,7 @@ const Payment = () => {
           ) : (
           <FormSection numero={3} titre="Documents à payer" complete={documentsOk} etat="Au moins un document">
             <div className="payment-docs">
+              {!sansImmat && (
               <ToggleCard id="doc-cg" titre="Carte grise" checked={docs.cg && !isVA} disabled={!cat || isVA}
                 onChange={(v) => setDocs((d) => ({ ...d, cg: v }))}
                 description={trancheChoisie ? trancheChoisie.libelle : "Tranche déterminée par la capacité"}
@@ -408,6 +474,7 @@ const Payment = () => {
                     }))} />
                 </div>
               </ToggleCard>
+              )}
 
               <ToggleCard id="doc-vg" titre="Vignette" checked={docs.vg && !isVA} disabled={!vignettes.length || isVA}
                 onChange={(v) => setDocs((d) => ({ ...d, vg: v }))}
@@ -436,6 +503,7 @@ const Payment = () => {
                 </Field>
               </ToggleCard>
 
+              {!sansImmat && (
               <div className={`fk-toggle ${plaque ? "on" : ""}`}>
                 <div className="fk-toggle-top">
                   <div className="fk-toggle-text"><b>Plaque</b><span>{isVA ? "La plaque VA se paie seule, sans autre document" : "Selon vos privilèges et le type de client"}</span></div>
@@ -443,13 +511,15 @@ const Payment = () => {
                 </div>
                 <ChoiceTiles name="plaque" label="Type de plaque" options={plaques} value={plaque} onChange={setPlaque} />
               </div>
+              )}
             </div>
           </FormSection>
           )}
         </form>
 
         <PaymentSummary
-          titre={surVehicule ? LIBELLES_OPERATION[operationVehicule] : plaque ? `Paiement ${plaque}` : p.modeImma === "2" ? "Réimmatriculation" : "Immatriculation"}
+          titre={surVehicule ? LIBELLES_OPERATION[operationVehicule] : sansImmat ? "Vignette / autorisation" : plaque ? `Paiement ${plaque}`
+            : p.modeImma === "2" ? "Réimmatriculation" : "Immatriculation"}
           infos={[
             { label: "Client", value: p.fullName.trim() },
             { label: "Châssis", value: p.chassis.trim(), mono: true },

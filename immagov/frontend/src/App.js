@@ -39,6 +39,7 @@ import ListeMarques from "./pages/ListeMarques/ListeMarques";
 import ModifierMarque from "./pages/ModifierMarque/ModifierMarque";
 import Statistiques from "./pages/Statistiques/Statistiques";
 import ListeReservation from "./pages/Reservation/ListeReservation";
+import ChargementPage from "./components/Spinner/ChargementPage";
 
 function App() { 
   const [user,setUser] = useState({});
@@ -107,6 +108,7 @@ function App() {
         <Navbar isLogging={isLogging}/>
           <Toaster position="top-right" reverseOrder={false} toastOptions={{ className: "toast", duration: 4000 }} />
           <ComboContext.Provider value={{ministeres,typeVehicules,modeles,marques,genres,directions}}>
+          <ChargementPage>
           <Routes>
               <Route path='/' element={<Connected><Login/></Connected>}/>
               <Route path="dashboard" element={<LoginProtected isLogging={isLogging}> <Dashboard /> </LoginProtected>} />
@@ -138,6 +140,7 @@ function App() {
               <Route path="statistiques" element={<LoginProtected><Statistiques /></LoginProtected>} />
               <Route path="reservation" element={<LoginProtected><ListeReservation /></LoginProtected>} />
           </Routes>
+          </ChargementPage>
           </ComboContext.Provider>
         <Footer />
       </UserContext.Provider>

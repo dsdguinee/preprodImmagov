@@ -1,7 +1,7 @@
 // Nouveau paiement : sections à gauche, récapitulatif collant à droite
 .payment {
   width: 90%;
-  max-width: 1240px;
+  max-width: 1560px;
   display: grid;
   gap: 20px;
   padding-bottom: 3em;
@@ -27,5 +27,4 @@
     background: $lighter-grey;
     font-size: 13px;
     span { color: $dark-grey; }
-  }
-}
+  }}

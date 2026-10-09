@@ -78,18 +78,47 @@ class PaiementController extends BaseController
 
            ];
 
+           // Immatriculation / reimmatriculation : carte grise ou plaque. Sinon vignette / autorisation seules
+           $estImmatriculation = !empty($input['typeCg']) || in_array($input['document'] ?? '', ['EP', 'VA']);
+           $paiementResoumis = $input['paiement_id'] ?? null;
+           $reglesChassis = ["bail","required","string","min:10","max:25",
+               // Vehicule reforme : seul ce message est affiche (bail)
+               function ($attribute, $value, $fail) {
+                   if ($reforme = $this->reformeDuChassis($value)) $fail($this->messageReforme($reforme));
+               }];
+           if ($estImmatriculation) {
+               $reglesChassis[] = function ($attribute, $value, $fail) use ($paiementResoumis) {
+                   if ($operation = $this->operationEnCours($value, $paiementResoumis)) $fail($this->messageOperationEnCours($operation));
+                   // Vehicule deja immatricule : plus d'immatriculation / reimmatriculation
+                   else if ($vehicule = $this->paiementImmatriculationUtilise($value))
+                       $fail("Ce châssis est déjà immatriculé (réf. ".$vehicule->reference.") : choisissez Mutation, Réforme ou Autres (vignette, autorisation de transport).");
+               };
+               $reglesChassis[] = new CheckChassis("new");
+           }
+           // Vignette / autorisation d'un vehicule deja enregistre : categorie et capacite stockees,
+           // la vignette doit correspondre a sa puissance fiscale
+           $reglesVignette = ["nullable"];
+           if (!$estImmatriculation && ($vehicule = $this->vehiculeDeReference($input['chassis'] ?? ''))) {
+               $input['categorieCg'] = $vehicule->categorie_id;
+               foreach (['pv', 'cu', 'pf', 'nbrePlace', 'ptra'] as $champ) $input[$champ] = $vehicule->$champ;
+               $reglesVignette[] = function ($attribute, $value, $fail) use ($vehicule) {
+                   if (empty($value)) return;
+                   $vignette = TypeVg::find($value);
+                   $puissance = $this->puissanceVehicule($vehicule);
+                   if (!$vignette || (int) $vignette->typecg_id !== (int) $vehicule->categorie_id)
+                       $fail("Cette vignette ne correspond pas à la catégorie du véhicule (réf. ".$vehicule->reference.").");
+                   else if ($puissance !== null && $vignette->unite === 'CV' && !$this->trancheCorrespond($vignette->signe, $vignette->capacite, $puissance))
+                       $fail("Cette vignette ne correspond pas à la puissance fiscale enregistrée du véhicule (".$puissance." CV, réf. ".$vehicule->reference.").");
+               };
+           }
+
            $validator = Validator::make($input,[
              "autorisation_id" => ['nullable',"not_in:''",],
              "categorieCg" => "required|not_in:0|exists:categories,categorie_id",
              "cu" => ["nullable","min:1"],
              "typeClient" => ["required","not_in:''"],
              "fullName" => [new TypeClient($input['typeClient'])],
-             // Vehicule reforme : seul ce message est affiche (bail)
-             "chassis" => ["bail","required","string","min:10","max:25",
-                 function ($attribute, $value, $fail) {
-                     if ($reforme = $this->reformeDuChassis($value)) $fail($this->messageReforme($reforme));
-                 },
-                 new CheckChassis("new")],
+             "chassis" => $reglesChassis,
              "modeExp" => ["required","not_in:''"],
              "modeImma" => ["required","not_in:0"],
              "nif" => [new CheckNif($input['typeClient'])],
@@ -97,7 +126,7 @@ class PaiementController extends BaseController
              "tel" => ["required","min:1"],
              "typeCg" => ["required",new TypeCartegrise($input['expressionCg'],$input['categorieCg'],$input['typeCg'],$input['pv'],$input['cu'],$input['pf'] ?? 0,$input['nbrePlace'] ?? 0)],
              "dateExpCg" => "nullable|date_format:Y-m-d|after:today",
-             "typeVignette" => ["nullable"],
+             "typeVignette" => $reglesVignette,
            ],$messages);
            if ($validator->fails()) {
                return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,'messages' => $validator->messages()]);
@@ -118,6 +147,10 @@ class PaiementController extends BaseController
                $paiement->autorisation_id = $input['autorisation_id'];
                $paiement->pv = $input['pv'];
                $paiement->cu = $input['cu'];
+               // Capacite stockee : puissance / cylindree, places, PTRA (controle des vignettes, pre-remplissage immagov)
+               $paiement->pf = (int) ($input['pf'] ?? 0);
+               $paiement->nbrePlace = (int) ($input['nbrePlace'] ?? 0);
+               $paiement->ptra = (int) ($input['ptra'] ?? 0);
                $paiement->status = 1;
                if($input['typeCg'] != 0 && $input['typeVignette'] == 0 && $input['autorisation_id'] == 0){
                    $type_document = 'cartegrise';
@@ -829,7 +862,7 @@ class PaiementController extends BaseController
        try{
 
            $paiement = DB::select("select a.paiement_id,a.agence_id,a.autorisation_id,a.categorie_id,a.chassis,dateExpAu,dateExpCg,dateExpVg,date_exp,
-                        fullName,isautoriser,modeExp,modeImma,nif,nomCategorie,oldereference,a.paiement_id,pv,qrcode,commune_id,
+                        fullName,isautoriser,modeExp,modeImma,nif,nomCategorie,oldereference,a.paiement_id,pv,cu,pf,nbrePlace,ptra,qrcode,commune_id,
                         reference,status,tel,a.typeCg,typeClient,a.typeVignette,a.autorisation_id,type_document,type_paiement,user_id,validedBy,type_plaque,utilise,montant_operation,
                         a.updated_at
                         from (select p.*,c.nomCategorie from paiements p,categories c
@@ -902,6 +935,74 @@ class PaiementController extends BaseController
             ." (réf. ".$reforme->reference.") : aucun paiement n'est plus possible pour ce châssis.";
     }
 
+    /**
+     * Operation en cours sur ce chassis : immatriculation / reimmatriculation (carte grise ou plaque),
+     * mutation ou reforme payee (non rejetee) mais pas encore utilisee par immagov.
+     * Tant qu'elle existe, seuls la vignette et l'autorisation de transport peuvent etre payees.
+     */
+    // Paiement d'immatriculation / reimmatriculation (carte grise ou plaque), de mutation ou de reforme
+    private function estOperation($q){
+        $q->where('typeCg', '<>', 0)
+          ->orWhereIn('type_plaque', ['EP', 'VA'])
+          ->orWhereIn('type_document', self::OPERATIONS_VEHICULE);
+    }
+
+    /**
+     * Vehicule tel qu'enregistre par sa derniere operation non rejetee (la mutation reprend
+     * les caracteristiques de l'immatriculation) : categorie et capacite stockees.
+     */
+    private function vehiculeDeReference($chassis){
+        if (trim((string) $chassis) === '') return null;
+        return DB::table('paiements')
+            ->whereRaw('trim(chassis) = ?', [trim($chassis)])
+            ->whereIn('status', [0, 1])
+            ->where(function ($q) { $this->estOperation($q); })
+            ->orderByDesc('paiement_id')
+            ->first(['paiement_id', 'reference', 'categorie_id', 'pf', 'nbrePlace', 'pv', 'cu', 'ptra']);
+    }
+
+    // Puissance fiscale enregistree (CV) ; null si inconnue
+    private function puissanceVehicule($vehicule){
+        return $vehicule->pf > 0 ? (int) $vehicule->pf : null;
+    }
+
+    // Meme regle que trancheCorrespond (frontend) ; sans tranche, la vignette convient a toute capacite
+    private function trancheCorrespond($signe, $capacite, $valeur){
+        if (!$signe) return true;
+        $bornes = array_map('floatval', explode(',', (string) $capacite));
+        $a = $bornes[0]; $b = $bornes[1] ?? null;
+        switch ($signe) {
+            case '<': return $valeur < $a;
+            case '<=': return $valeur <= $a;
+            case '>': return $valeur > $a;
+            case '>=': return $valeur >= $a;
+            case '!': return $valeur > $a && $valeur < $b;
+            case '>,<=': return $valeur > $a && $valeur <= $b;
+            case '>=,<': return $valeur >= $a && $valeur < $b;
+            default: return false;
+        }
+    }
+
+    private function operationEnCours($chassis, $saufPaiementId = null){
+        return DB::table('paiements')
+            ->whereRaw('trim(chassis) = ?', [trim($chassis)])
+            ->whereIn('status', [0, 1])
+            ->where('utilise', false)
+            ->where(function ($q) { $this->estOperation($q); })
+            ->when(is_numeric($saufPaiementId), function ($q) use ($saufPaiementId) {
+                $q->where('paiement_id', '<>', $saufPaiementId);
+            })
+            ->orderByDesc('paiement_id')
+            ->first(['paiement_id', 'reference', 'modeImma', 'type_document']);
+    }
+
+    private function messageOperationEnCours($operation){
+        $libelle = ['mutation' => 'mutation', 'reforme' => 'réforme'][$operation->type_document] ?? null;
+        if (!$libelle) $libelle = (int) $operation->modeImma === 2 ? 'réimmatriculation' : 'immatriculation';
+        return "Une ".$libelle." est déjà en cours pour ce châssis (réf. ".$operation->reference.")."
+            ." Seules la vignette et l'autorisation de transport peuvent être payées.";
+    }
+
     // Montant d'une mutation : carte grise du paiement d'immatriculation, gratuite pour une plaque VA
     private function montantMutation($vehicule){
         return $vehicule->type_plaque === 'VA' ? 0 : (float) $vehicule->montantcartegrise;
@@ -913,6 +1014,9 @@ class PaiementController extends BaseController
             if($reforme = $this->reformeDuChassis($chassis))
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
                     'messages' => ['numChassis' => [$this->messageReforme($reforme)]]]);
+            if($operation = $this->operationEnCours($chassis))
+                return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
+                    'messages' => ['numChassis' => [$this->messageOperationEnCours($operation)]]]);
             $vehicule = $this->paiementImmatriculationUtilise($chassis);
             if(!$vehicule)
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
@@ -964,6 +1068,9 @@ class PaiementController extends BaseController
         if ($reforme = $this->reformeDuChassis($input['chassis']))
             return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,
                 'messages' => ['chassis' => [$this->messageReforme($reforme)]]]);
+        if ($operation = $this->operationEnCours($input['chassis']))
+            return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,
+                'messages' => ['chassis' => [$this->messageOperationEnCours($operation)]]]);
         $vehicule = $this->paiementImmatriculationUtilise($input['chassis']);
         if (!$vehicule)
             return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,
