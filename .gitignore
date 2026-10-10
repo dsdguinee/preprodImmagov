@@ -20,3 +20,7 @@ sipim/backend/node_modules/
 sipim/backend/.env
 sipim/frontend/node_modules/
 sipim/frontend/build/
+sipim/frontend/build/
+immagov/backend/storage/
+immagov/backend/storage/framework/
+deploy.sh
