@@ -36,6 +36,12 @@ class SipimService
         return self::call('post', '/liberer', ['reference' => trim($reference)]);
     }
 
+    // État du dossier créé avec la référence : en_attente, valide ou rejete (voir App\Models\Concerns\NotifieSipim)
+    public static function statutDossier($reference, $statut)
+    {
+        return self::call('post', '/statut-dossier', ['reference' => trim($reference), 'statut' => $statut]);
+    }
+
     private static function call($method, $path, array $data)
     {
         try {

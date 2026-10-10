@@ -1,10 +1,99 @@
 .stats {
+    .header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1em;
+    }
+    // Onglets : état des recettes / tableau détaillé
+    .onglets {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background-color: $light-grey;
+        border-radius: 8px;
+        button {
+            padding: .5em 1em;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: $darker-grey;
+            cursor: pointer;
+            &[aria-selected="true"] {
+                background: $white;
+                color: $primary;
+                font-weight: 600;
+                box-shadow: 0 1px 2px rgba($dark-grey, .4);
+            }
+        }
+    }
     .filters {
         margin: 2em 0;
         padding: 2em;
         background-color: $light-grey;
         button {
             margin-top: 1em;
+        }
+    }
+    // État des recettes
+    .etat-recettes {
+        .filters { margin-bottom: 1em; }
+        .rapport-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1em;
+            margin-bottom: .75em;
+            h4 { margin: 0 0 4px; font-size: 17px; }
+            p { margin: 0; color: $dark-grey; font-size: 13px; }
+        }
+        .exports {
+            display: flex;
+            gap: 6px;
+            button {
+                margin: 0;
+                padding: .5em 1em;
+                border: 1px solid $primary;
+                border-radius: 6px;
+                background: $white;
+                color: $primary;
+                font-weight: 600;
+                cursor: pointer;
+                &:hover:not(:disabled) { background: $primary; color: $white; }
+                &:disabled { opacity: .45; cursor: not-allowed; }
+            }
+        }
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba($dark-grey, .35);
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            th, td {
+                padding: 8px 10px;
+                border-bottom: 1px solid rgba($dark-grey, .25);
+                text-align: left;
+                white-space: nowrap;
+            }
+            thead th {
+                background: $light-grey;
+                font-size: 12px;
+                color: $darker-grey;
+            }
+            .n { text-align: right; font-variant-numeric: tabular-nums; }
+            td.total { font-weight: 600; }
+            tbody tr:hover { background: rgba($light-grey, .6); }
+            tfoot th {
+                background: $light-grey;
+                border-top: 2px solid $dark-grey;
+                border-bottom: 0;
+            }
+            .vide { text-align: center; color: $dark-grey; padding: 2em; }
         }
     }
 }

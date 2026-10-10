@@ -17,7 +17,7 @@ import Api from "../../services/Api";
 import { UserContext } from "../../services/Context/Context";
 import { loadingState } from "../../recoil/atoms/loadingAtom";
 import { isEmpty } from "../../services/Helpers/fonctions";
-import { COLORS, STATUTS, num, fmt, pct, fmtMoney, docLabel, Pill } from "../../services/Helpers/dashboard";
+import { COLORS, STATUTS, PERIODES, num, fmt, pct, fmtMoney, docLabel, variation, Pill, Delta, MoneyTooltip, CountTooltip, Repartition } from "../../services/Helpers/dashboard";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
 import Erreurs from "../../components/Erreurs/Erreurs";
 
@@ -29,84 +29,11 @@ const SERIES = [
   { key: "frais", label: "Frais de service", color: COLORS.darkGrey },
 ];
 const PROFILE_COLORS = [COLORS.primary, COLORS.darkGrey, COLORS.nightBlue, COLORS.lightGreen];
-const PERIODES = [
-  { value: "jour", label: "Aujourd'hui", compare: "vs hier" },
-  { value: "mois", label: "Ce mois", compare: "vs mois précédent" },
-  { value: "annee", label: "Cette année", compare: "vs année précédente" },
-  { value: "perso", label: "Personnalisée", compare: "vs période précédente de même durée" },
-];
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const HEURES = Array.from({ length: 12 }, (_, i) => i + 7);
 // Teintes de $night-blue, du plus clair au plus foncé
 const HEAT_STEPS = ["#eef2f8", "#cdd9ea", "#9bb2d4", "#5f84bb", "#2a5a9e", COLORS.nightBlue];
 const SEUIL_REJET = 5;
-
-const variation = (cur, prev) => (num(prev) > 0 ? (num(cur) - num(prev)) / num(prev) : null);
-
-const Delta = ({ value, goodWhenUp = true }) => {
-  if (value === null) return <span className="delta muted">—</span>;
-  const up = value >= 0;
-  return (
-    <span className={`delta ${up === goodWhenUp ? "up" : "down"}`}>
-      {up ? "▲" : "▼"} {pct(Math.abs(value * 100))} %
-    </span>
-  );
-};
-
-const MoneyTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  const total = payload.reduce((s, p) => s + num(p.value), 0);
-  return (
-    <div className="chart-tip">
-      <b>{label}</b>
-      {payload.map((p) => (
-        <div className="tr" key={p.dataKey}>
-          <span><i style={{ background: p.color }} />{p.name}</span>
-          <span>{fmt(p.value)} GNF</span>
-        </div>
-      ))}
-      {payload.length > 1 && (
-        <div className="tr total"><span>Total</span><span>{fmt(total)} GNF</span></div>
-      )}
-    </div>
-  );
-};
-
-const CountTooltip = ({ active, payload, unit }) => {
-  if (!active || !payload?.length) return null;
-  const p = payload[0];
-  return (
-    <div className="chart-tip">
-      <b>{p.payload.libelle}</b>
-      <div className="tr"><span>{unit}</span><span>{unit.includes("GNF") ? fmtMoney(p.value) : fmt(p.value)}</span></div>
-    </div>
-  );
-};
-
-// Barre segmentée à 100 % avec légende chiffrée
-const Repartition = ({ rows }) => {
-  const total = rows.reduce((s, r) => s + num(r.nombre), 0);
-  if (total === 0) return <p className="empty">Aucun paiement sur la période.</p>;
-  return (
-    <>
-      <div className="segbar">
-        {rows.map((r) => (
-          <div key={r.label} style={{ flex: num(r.nombre), background: r.color }} title={r.label} />
-        ))}
-      </div>
-      <ul className="seglist">
-        {rows.map((r) => (
-          <li key={r.label}>
-            <i style={{ background: r.color }} />
-            <span>{r.label}</span>
-            <strong>{fmt(r.nombre)}</strong>
-            <span className="muted">{pct((num(r.nombre) / total) * 100)} %</span>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-};
 
 const AdminDashboard = () => {
   const api = new Api();

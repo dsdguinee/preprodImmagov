@@ -89,6 +89,9 @@ class PaiementController extends BaseController
            if ($estImmatriculation) {
                $reglesChassis[] = function ($attribute, $value, $fail) use ($paiementResoumis) {
                    if ($operation = $this->operationEnCours($value, $paiementResoumis)) $fail($this->messageOperationEnCours($operation));
+                   else if ($dossier = $this->dossierEnAttente($value))
+                       $fail("Le dossier de ".$this->libelleOperation($dossier)." (réf. ".$dossier->reference.") est en attente de validation dans IMMAGOV :"
+                           ." seules la vignette et l'autorisation de transport peuvent être payées.");
                    // Vehicule deja immatricule : plus d'immatriculation / reimmatriculation
                    else if ($vehicule = $this->paiementImmatriculationUtilise($value))
                        $fail("Ce châssis est déjà immatriculé (réf. ".$vehicule->reference.") : choisissez Mutation, Réforme ou Autres (vignette, autorisation de transport).");
@@ -863,7 +866,7 @@ class PaiementController extends BaseController
 
            $paiement = DB::select("select a.paiement_id,a.agence_id,a.autorisation_id,a.categorie_id,a.chassis,dateExpAu,dateExpCg,dateExpVg,date_exp,
                         fullName,isautoriser,modeExp,modeImma,nif,nomCategorie,oldereference,a.paiement_id,pv,cu,pf,nbrePlace,ptra,qrcode,commune_id,
-                        reference,status,tel,a.typeCg,typeClient,a.typeVignette,a.autorisation_id,type_document,type_paiement,user_id,validedBy,type_plaque,utilise,montant_operation,
+                        reference,status,tel,a.typeCg,typeClient,a.typeVignette,a.autorisation_id,type_document,type_paiement,user_id,validedBy,type_plaque,utilise,statut_dossier,montant_operation,
                         a.updated_at
                         from (select p.*,c.nomCategorie from paiements p,categories c
                         where p.categorie_id = c.categorie_id) a
@@ -907,6 +910,8 @@ class PaiementController extends BaseController
             ->leftJoin('type_cgs as cg', 'cg.typecg_id', '=', 'p.typeCg')
             ->whereRaw('trim(p.chassis) = ?', [trim($chassis)])
             ->where('p.utilise', true)
+            // Dossier validé dans immagov (un dossier en attente ou rejeté n'immatricule pas encore le véhicule)
+            ->where('p.statut_dossier', 'valide')
             ->whereIn('p.modeImma', [1, 2])
             ->where('p.status', 1)
             ->whereNotIn('p.type_document', self::OPERATIONS_VEHICULE)
@@ -996,11 +1001,33 @@ class PaiementController extends BaseController
             ->first(['paiement_id', 'reference', 'modeImma', 'type_document']);
     }
 
+    private function libelleOperation($paiement){
+        $libelle = ['mutation' => 'mutation', 'reforme' => 'réforme'][$paiement->type_document] ?? null;
+        return $libelle ?: ((int) $paiement->modeImma === 2 ? 'réimmatriculation' : 'immatriculation');
+    }
+
     private function messageOperationEnCours($operation){
-        $libelle = ['mutation' => 'mutation', 'reforme' => 'réforme'][$operation->type_document] ?? null;
-        if (!$libelle) $libelle = (int) $operation->modeImma === 2 ? 'réimmatriculation' : 'immatriculation';
-        return "Une ".$libelle." est déjà en cours pour ce châssis (réf. ".$operation->reference.")."
+        return "Une ".$this->libelleOperation($operation)." est déjà en cours pour ce châssis (réf. ".$operation->reference.")."
             ." Seules la vignette et l'autorisation de transport peuvent être payées.";
+    }
+
+    /**
+     * Dossier immagov (immatriculation, mutation ou reforme) cree avec une reference de ce chassis
+     * et pas encore valide : mutation et reforme sont impossibles, vignette et autorisation restent payables.
+     */
+    private function dossierEnAttente($chassis){
+        return DB::table('paiements')
+            ->whereRaw('trim(chassis) = ?', [trim($chassis)])
+            ->where('utilise', true)
+            ->where('statut_dossier', 'en_attente')
+            ->where(function ($q) { $this->estOperation($q); })
+            ->orderByDesc('paiement_id')
+            ->first(['paiement_id', 'reference', 'modeImma', 'type_document']);
+    }
+
+    private function messageDossierEnAttente($dossier){
+        return "Le dossier de ".$this->libelleOperation($dossier)." (réf. ".$dossier->reference.") est en attente de validation dans IMMAGOV :"
+            ." la mutation et la réforme sont impossibles. Seules la vignette et l'autorisation de transport peuvent être payées.";
     }
 
     // Montant d'une mutation : carte grise du paiement d'immatriculation, gratuite pour une plaque VA
@@ -1017,6 +1044,9 @@ class PaiementController extends BaseController
             if($operation = $this->operationEnCours($chassis))
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
                     'messages' => ['numChassis' => [$this->messageOperationEnCours($operation)]]]);
+            if($dossier = $this->dossierEnAttente($chassis))
+                return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
+                    'messages' => ['numChassis' => [$this->messageDossierEnAttente($dossier)]]]);
             $vehicule = $this->paiementImmatriculationUtilise($chassis);
             if(!$vehicule)
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND,
@@ -1071,6 +1101,9 @@ class PaiementController extends BaseController
         if ($operation = $this->operationEnCours($input['chassis']))
             return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,
                 'messages' => ['chassis' => [$this->messageOperationEnCours($operation)]]]);
+        if ($dossier = $this->dossierEnAttente($input['chassis']))
+            return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,
+                'messages' => ['chassis' => [$this->messageDossierEnAttente($dossier)]]]);
         $vehicule = $this->paiementImmatriculationUtilise($input['chassis']);
         if (!$vehicule)
             return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,

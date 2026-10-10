@@ -159,6 +159,8 @@ class EcashController extends Controller
                 'utilise' => true,
                 'date_utilisation' => now(),
                 'numero_immatriculation' => $request->immatriculation ? trim($request->immatriculation) : null,
+                // Le dossier créé dans immagov part en validation
+                'statut_dossier' => 'en_attente',
             ]);
             if ($maj === 0) {
                 $date = DB::table('paiements')->where('paiement_id', $paiement->paiement_id)->value('date_utilisation');
@@ -182,11 +184,35 @@ class EcashController extends Controller
             return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => 'La référence est obligatoire.']);
         try {
             $maj = DB::table('paiements')->where('reference', $reference)->update([
-                'utilise' => false, 'date_utilisation' => null, 'numero_immatriculation' => null,
+                'utilise' => false, 'date_utilisation' => null, 'numero_immatriculation' => null, 'statut_dossier' => null,
             ]);
             if ($maj === 0 && !DB::table('paiements')->where('reference', $reference)->exists())
                 return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND, 'messages' => 'Numéro de référence du paiement non trouvé']);
             return response()->json(['success' => true, 'status' => Response::HTTP_OK, 'messages' => 'Référence libérée.']);
+        }
+        catch (QueryException $ex){
+            return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => [$ex->getMessage()]]);
+        }
+    }
+
+    /**
+     * État du dossier immagov créé avec une référence utilisée : validé, rejeté ou de nouveau en attente (resoumission).
+     * POST /api/external/paiement/statut-dossier  { reference, statut: en_attente|valide|rejete } — en-tête X-API-KEY
+     */
+    public function statutDossier(Request $request){
+        $reference = trim((string) $request->reference);
+        if ($reference === '')
+            return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => 'La référence est obligatoire.']);
+        if (!in_array($request->statut, ['en_attente', 'valide', 'rejete'], true))
+            return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => 'Statut du dossier inconnu.']);
+        try {
+            $paiement = DB::table('paiements')->where('reference', $reference)->first(['paiement_id', 'utilise']);
+            if (!$paiement)
+                return response()->json(['success' => false, 'status' => Response::HTTP_NOT_FOUND, 'messages' => 'Numéro de référence du paiement non trouvé']);
+            if (!$paiement->utilise)
+                return response()->json(['success' => false, 'status' => Response::HTTP_CONFLICT, 'messages' => "Cette référence n'a pas encore été utilisée par un dossier."]);
+            DB::table('paiements')->where('paiement_id', $paiement->paiement_id)->update(['statut_dossier' => $request->statut]);
+            return response()->json(['success' => true, 'status' => Response::HTTP_OK, 'messages' => 'Statut du dossier enregistré.']);
         }
         catch (QueryException $ex){
             return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST, 'messages' => [$ex->getMessage()]]);

@@ -1,4 +1,4 @@
-// Éléments partagés par les tableaux de bord administrateur et agent
+// Éléments partagés par les tableaux de bord administrateur, directeur et agent
 import { formatStringNumber } from "./fonctions";
 
 // Couleurs de src/styles/_colors.scss (Recharts attend des valeurs JS, pas des variables SCSS)
@@ -44,3 +44,78 @@ export const fmtMoney = (v) => {
 export const docLabel = (d) => DOCUMENTS[d] || d || "Non renseigné";
 
 export const Pill = ({ tone, children }) => <span className={`pill ${tone}`}>{children}</span>;
+
+// Périodes des tableaux de bord administrateur et directeur
+export const PERIODES = [
+  { value: "jour", label: "Aujourd'hui", compare: "vs hier" },
+  { value: "mois", label: "Ce mois", compare: "vs mois précédent" },
+  { value: "annee", label: "Cette année", compare: "vs année précédente" },
+  { value: "perso", label: "Personnalisée", compare: "vs période précédente de même durée" },
+];
+
+export const variation = (cur, prev) => (num(prev) > 0 ? (num(cur) - num(prev)) / num(prev) : null);
+
+export const Delta = ({ value, goodWhenUp = true }) => {
+  if (value === null) return <span className="delta muted">—</span>;
+  const up = value >= 0;
+  return (
+    <span className={`delta ${up === goodWhenUp ? "up" : "down"}`}>
+      {up ? "▲" : "▼"} {pct(Math.abs(value * 100))} %
+    </span>
+  );
+};
+
+export const MoneyTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  const total = payload.reduce((s, p) => s + num(p.value), 0);
+  return (
+    <div className="chart-tip">
+      <b>{label}</b>
+      {payload.map((p) => (
+        <div className="tr" key={p.dataKey}>
+          <span><i style={{ background: p.color }} />{p.name}</span>
+          <span>{fmt(p.value)} GNF</span>
+        </div>
+      ))}
+      {payload.length > 1 && (
+        <div className="tr total"><span>Total</span><span>{fmt(total)} GNF</span></div>
+      )}
+    </div>
+  );
+};
+
+export const CountTooltip = ({ active, payload, unit }) => {
+  if (!active || !payload?.length) return null;
+  const p = payload[0];
+  return (
+    <div className="chart-tip">
+      <b>{p.payload.libelle}</b>
+      <div className="tr"><span>{unit}</span><span>{unit.includes("GNF") ? fmtMoney(p.value) : fmt(p.value)}</span></div>
+    </div>
+  );
+};
+
+// Barre segmentée à 100 % avec légende chiffrée
+export const Repartition = ({ rows }) => {
+  const total = rows.reduce((s, r) => s + num(r.nombre), 0);
+  if (total === 0) return <p className="empty">Aucun paiement sur la période.</p>;
+  return (
+    <>
+      <div className="segbar">
+        {rows.map((r) => (
+          <div key={r.label} style={{ flex: num(r.nombre), background: r.color }} title={r.label} />
+        ))}
+      </div>
+      <ul className="seglist">
+        {rows.map((r) => (
+          <li key={r.label}>
+            <i style={{ background: r.color }} />
+            <span>{r.label}</span>
+            <strong>{fmt(r.nombre)}</strong>
+            <span className="muted">{pct((num(r.nombre) / total) * 100)} %</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+};

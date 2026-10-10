@@ -41,8 +41,9 @@ const OPERATIONS = [
   { value: "reforme", label: "Réforme" },
   { value: "autres", label: "Autres" },
 ];
-// Opération en cours : seulement Autres ; châssis déjà immatriculé : plus d'immatriculation / réimmatriculation
-const operationsPour = (info) => info?.enCours ? OPERATIONS.filter((o) => o.value === "autres")
+// Opération en cours ou dossier en attente de validation dans immagov : seulement Autres ;
+// châssis déjà immatriculé : plus d'immatriculation / réimmatriculation
+const operationsPour = (info) => info?.enCours || info?.dossierEnAttente ? OPERATIONS.filter((o) => o.value === "autres")
   : info?.immatricule ? OPERATIONS.filter((o) => !["1", "2"].includes(o.value)) : OPERATIONS;
 
 const aLePrivilege = (privileges, nom) => privileges?.some((p) => p.privilege === nom);
@@ -179,6 +180,8 @@ const Payment = () => {
     // Immatriculation / réimmatriculation déjà utilisée par immagov : le véhicule est immatriculé
     const immatricule = paiements.find((x) => Number(x.utilise) && Number(x.status) === 1
       && ["1", "2"].includes(String(x.modeImma)) && !["mutation", "reforme"].includes(x.type_document));
+    // Dossier créé dans immagov avec une référence de ce châssis, pas encore validé
+    const dossierEnAttente = paiements.find((x) => Number(x.utilise) && x.statut_dossier === "en_attente" && estOperation(x));
     // Véhicule tel qu'enregistré par sa dernière opération non rejetée
     const vehiculeRef = paiements.find((x) => [0, 1].includes(Number(x.status)) && estOperation(x));
     const dernier = paiements[0];
@@ -190,6 +193,10 @@ const Payment = () => {
           libelle: LIBELLES_OPERATION[enCours.type_document] || (String(enCours.modeImma) === "2" ? "Réimmatriculation" : "Immatriculation"),
         },
         immatricule: immatricule && { reference: immatricule.reference },
+        dossierEnAttente: dossierEnAttente && {
+          reference: dossierEnAttente.reference,
+          libelle: LIBELLES_OPERATION[dossierEnAttente.type_document] || (String(dossierEnAttente.modeImma) === "2" ? "Réimmatriculation" : "Immatriculation"),
+        },
         vehicule: vehiculeRef,
       };
     setChassisInfo(info);
@@ -348,7 +355,8 @@ const Payment = () => {
             <div className="fk-grid">
               <Field label="Numéro de châssis" htmlFor="chassis" erreur={erreurVisible("chassis")}
                 hint={chassisInfo?.enCours ? `${chassisInfo.enCours.libelle} en cours (réf. ${chassisInfo.enCours.reference}) : seules la vignette et l'autorisation de transport peuvent être payées.`
-                  : chassisInfo?.immatricule ? `Véhicule déjà immatriculé (réf. ${chassisInfo.immatricule.reference}) : mutation, réforme ou autres services.`
+                  : chassisInfo?.dossierEnAttente ? `${chassisInfo.dossierEnAttente.libelle} (réf. ${chassisInfo.dossierEnAttente.reference}) en attente de validation dans IMMAGOV : seules la vignette et l'autorisation de transport peuvent être payées.`
+                  : chassisInfo?.immatricule ?`Véhicule déjà immatriculé (réf. ${chassisInfo.immatricule.reference}) : mutation, réforme ou autres services.`
                   : chassisInfo && !chassisInfo.bloquant ? `Paiement précédent autorisé (réf. ${chassisInfo.reference}).` : undefined}>
                 <input id="chassis" className="mono" value={p.chassis} placeholder="Ex. VF1RFB00X62345678" maxLength={17}
                   onChange={(e) => { maj({ chassis: e.target.value.toUpperCase() }); setChassisInfo(); setVehicule(); setVehiculeErreur(""); }}

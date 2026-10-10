@@ -42,7 +42,7 @@ class AdminDashboardController extends BaseController
     }
 
     // Période en cours et même durée écoulée sur la période précédente
-    private function periodes($periode, $dateDebut = null, $dateFin = null){
+    protected function periodes($periode, $dateDebut = null, $dateFin = null){
         $now = Carbon::now();
         switch ($periode) {
             case 'perso':

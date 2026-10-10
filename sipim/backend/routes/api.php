@@ -9,6 +9,8 @@ use \App\Http\Controllers\API\AgenceController;
 use \App\Http\Controllers\API\EcashController;
 use \App\Http\Controllers\API\AdminDashboardController;
 use \App\Http\Controllers\API\AgentDashboardController;
+use \App\Http\Controllers\API\DirecteurDashboardController;
+use \App\Http\Controllers\API\StatistiqueController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -29,6 +31,7 @@ Route::middleware('external.key')->group(function () {
          Route::get('/', [EcashController::class,'getpaiement']);
         Route::put('/utiliser', [EcashController::class,'utiliser']);
        Route::post('/liberer', [EcashController::class,'liberer']);
+        Route::post('/statut-dossier', [EcashController::class,'statutDossier']);
     });
   
 });
@@ -53,6 +56,7 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::get('/getPaiementByDateDay/{paiement_id?}',[PaiementController::class, 'getPaiementByDateDay']);
         Route::get('/getPaiements',[PaiementController::class, 'getPaiements']);
         Route::get('/dashboardStat',[PaiementController::class, 'dashboardStat']);
+        Route::get('/etat-recettes',[StatistiqueController::class, 'etatRecettes']);
         Route::get('/getpaiementByID/{paiement_id}',[PaiementController::class, 'getpaiementByID']);
         Route::get('/getpaiementByNumChassis/{NumChassis}',[PaiementController::class, 'getpaiementByNumChassis']);
         Route::get('/vehicule-utilise/{chassis}',[PaiementController::class, 'vehiculeUtilise']);
@@ -95,6 +99,7 @@ Route::group(['middleware' => ['jwt.verify']],function (){
     });
     Route::get('/admin/dashboard',[AdminDashboardController::class,"index"]);
     Route::get('/agent/dashboard',[AgentDashboardController::class,"index"]);
+    Route::get('/directeur/dashboard',[DirecteurDashboardController::class,"index"]);
     Route::prefix('agence')->group(function () {
         Route::get('/getAll',[AgenceController::class,"getAgences"]);
         Route::get('/agencebyid/{agence_id}',[AgenceController::class,"getagencebyid"]);

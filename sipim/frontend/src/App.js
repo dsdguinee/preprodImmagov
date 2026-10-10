@@ -5,6 +5,7 @@ import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AgentDashboard from "./pages/AgentDashboard/AgentDashboard";
+import DirecteurDashboard from "./pages/DirecteurDashboard/DirecteurDashboard";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import Payment from "./pages/Payment/Payment";
@@ -108,7 +109,7 @@ function App() {
               <Routes>
                 <Route path="*" element={<h2>Pas de Page Correspondate: 404!</h2>} />
                 <Route path="/" element={<Connected><Login /></Connected>} />
-                <Route path="dashboard" element={<LoginProtected>{userRole?.type === 3 ? <AdminDashboard /> : userRole?.type === 1 ? <AgentDashboard /> : <Dashboard />}</LoginProtected>} />
+                <Route path="dashboard" element={<LoginProtected>{userRole?.type === 3 ? <AdminDashboard /> : userRole?.type === 1 ? <AgentDashboard /> : userRole?.nom_role === "Directeur" ? <DirecteurDashboard /> : <Dashboard />}</LoginProtected>} />
                 <Route path="stats" element={<LoginProtected><Stats /></LoginProtected>} />
                 <Route path="payment">
                   <Route path="new" element={<LoginProtected><Payment /></LoginProtected>} />

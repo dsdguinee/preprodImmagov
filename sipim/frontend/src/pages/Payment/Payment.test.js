@@ -143,6 +143,17 @@ describe("Formulaire de nouveau paiement", () => {
       expect(Object.fromEntries(formData.entries())).toMatchObject({ categorieCg: "2", pf: "15", typeCg: "0", typeVignette: "24", autorisation_id: "0", document: "Ordinaire" });
     });
 
+    it("ne propose que Autres tant que le dossier d'immatriculation attend sa validation dans immagov", async () => {
+      historique([{ reference: "REFATTENTE", modeImma: 1, typeCg: 3, type_document: "cartegrise", status: 1, utilise: 1,
+        statut_dossier: "en_attente", isautoriser: 0, categorie_id: 2, nomCategorie: "Vehicules legers", pf: 9 }]);
+      expect(await screen.findByText(/Immatriculation \(réf. REFATTENTE\) en attente de validation dans IMMAGOV/)).toBeInTheDocument();
+      expect(screen.getByLabelText("Autres")).toBeChecked();
+      ["Immatriculation", "Réimmatriculation", "Mutation", "Réforme"].forEach((o) =>
+        expect(screen.queryByLabelText(o)).not.toBeInTheDocument());
+      // Vignette toujours payable
+      expect(screen.getByRole("option", { name: /jusqu'à 12 CV/ })).toBeInTheDocument();
+    });
+
     it("ne propose que Autres tant qu'une opération est en cours", async () => {
       historique([{ reference: "REFENCOURS", modeImma: 1, typeCg: 3, type_document: "cartegrise", status: 1, utilise: 0, isautoriser: 0 }]);
       expect(await screen.findByText(/Immatriculation en cours \(réf. REFENCOURS\)/)).toBeInTheDocument();

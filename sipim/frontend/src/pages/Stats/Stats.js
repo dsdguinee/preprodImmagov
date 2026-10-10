@@ -7,6 +7,8 @@ import { loadingState } from "../../recoil/atoms/loadingAtom";
 import Api from "../../services/Api";
 import { ElementContext, UserContext } from "../../services/Context/Context";
 import { expression, objecttoFormData } from "../../services/Helpers/fonctions";
+import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
+import EtatRecettes from "./EtatRecettes";
 
 
 const Stats = () => {
@@ -17,6 +19,7 @@ const Stats = () => {
   const {elementsData} = useContext(ElementContext);
   const {decoupage} = useContext(UserContext);
   const[loadedAgences,setLoadedAgences] = useState([]);
+  const [onglet,setOnglet] = useState('recettes');
   
   const[search,setSearch] = useState({
     region_id:0,
@@ -211,10 +214,17 @@ const Stats = () => {
   }
   return (
     <div className="page stats">
-       <Erreurs validation = {erreurs} />
+      <DocumentTitle title="Statistiques" />
       <div className="header">
         <h3>Statistiques</h3>
+        <div className="onglets" role="tablist" aria-label="Statistiques">
+          <button type="button" role="tab" aria-selected={onglet === 'recettes'} onClick={() => setOnglet('recettes')}>État des recettes</button>
+          <button type="button" role="tab" aria-selected={onglet === 'detail'} onClick={() => setOnglet('detail')}>Tableau détaillé</button>
+        </div>
       </div>
+      {onglet === 'recettes' && <EtatRecettes />}
+      {onglet === 'detail' && (<>
+       <Erreurs validation = {erreurs} />
       <div className="filters">
         <form onSubmit={submitSearch}>
           <h4>Filtres</h4>
@@ -292,6 +302,7 @@ const Stats = () => {
           />
         </Box>
       </div>
+      </>)}
     </div>
   );
 };
