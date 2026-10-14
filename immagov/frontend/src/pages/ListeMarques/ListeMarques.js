@@ -1,8 +1,6 @@
 import { useState,useEffect } from "react";
 import Box from "@mui/material/Box";
 import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
-import "ag-grid-community/dist/styles/ag-grid.css";
-import "ag-grid-community/dist/styles/ag-theme-material.css";
 import { Link } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 

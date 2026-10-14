@@ -1,5 +1,4 @@
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
-import { RecoilRoot } from "recoil";
 import EtatRecettes from "./EtatRecettes";
 import { UserContext } from "../../services/Context/Context";
 
@@ -28,11 +27,9 @@ beforeEach(() => {
 });
 
 const afficher = () => render(
-  <RecoilRoot>
     <UserContext.Provider value={{ decoupage }}>
       <EtatRecettes />
     </UserContext.Provider>
-  </RecoilRoot>
 );
 
 const lireBlob = (blob) => new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsText(blob); });

@@ -1,11 +1,10 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-import { useRecoilState } from "recoil";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from "recharts";
 import moment from "moment";
 import "moment/locale/fr";
 import Api from "../../services/Api";
 import { UserContext } from "../../services/Context/Context";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { isEmpty } from "../../services/Helpers/fonctions";
 import { COLORS, PERIODES, num, fmt, pct, fmtMoney, variation, Pill, Delta, MoneyTooltip, CountTooltip, Repartition } from "../../services/Helpers/dashboard";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
@@ -39,7 +38,7 @@ const delai = (heures) => {
 const DirecteurDashboard = () => {
   const api = new Api();
   const { user } = useContext(UserContext);
-  const [, setIsLoading] = useRecoilState(loadingState);
+  const [, setIsLoading] = useAtomState(loadingState);
   const [periode, setPeriode] = useState("mois");
   const [intervalle, setIntervalle] = useState({ debut: moment().startOf("month").format("YYYY-MM-DD"), fin: moment().format("YYYY-MM-DD") });
   const [intervalleApplique, setIntervalleApplique] = useState();

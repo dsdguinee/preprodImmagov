@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Api from "../../services/Api";
 import { isEmpty } from "../../services/Helpers/fonctions";
-import OutsideClickHandler from "react-outside-click-handler";
+import OutsideClickHandler from "../OutsideClickHandler/OutsideClickHandler";
 
 const MenuDropdown = ({
   setOpenDropdown,

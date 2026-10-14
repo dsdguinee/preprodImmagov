@@ -9,8 +9,7 @@ import Erreurs from "../../components/Erreurs/Erreurs";
 import { UserContext } from "../../services/Context/Context";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 
 const Communes = () => {
   const [isNewCommuneModalOpen, setIsNewCommuneModalOpen] = useState(false);
@@ -19,7 +18,7 @@ const Communes = () => {
   const [communeData, setCommuneData] = useState([]);
   const [erreurs, setErreurs] = useState([]);
   const [reload, setReload] = useState(false);
-  const [, setIsLoading] = useRecoilState(loadingState);
+  const [, setIsLoading] = useAtomState(loadingState);
 
   const { decoupage, refreshDecoupage } = useContext(UserContext);
   const api = new Api();

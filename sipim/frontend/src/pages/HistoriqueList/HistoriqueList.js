@@ -5,8 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { expression, formatStringNumber, isEmpty, objecttoFormData, fraisService, montantOperation } from "../../services/Helpers/fonctions";
 import moment from "moment";
 import "moment/locale/fr";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { ToWords } from "to-words";
 import Api from "../../services/Api";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
@@ -19,7 +18,7 @@ const HistoriqueList = () => {
   const api = new Api();
   const [paiementData,setPaiementData] = useState([]);
   const[globalMontant,setGlobalMontant] = useState(0);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const{elementsData} = useContext(ElementContext);
   const {privileges} = useContext(UserContext);
   const [impression,setImpression] = useState(privileges.filter((p) => p.privilege === "Impression").length > 0 ? "Impression":'');

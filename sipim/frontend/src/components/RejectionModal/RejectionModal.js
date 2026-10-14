@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Erreurs from "../Erreurs/Erreurs";
 import Api from "../../services/Api";
 const RejectionModal = ({ isOpen, setIsOpen,id }) => {
@@ -13,7 +12,7 @@ const RejectionModal = ({ isOpen, setIsOpen,id }) => {
   const [motif, setMotif] = useState("Motif 1");
   const [nouveaumotif, setNouveaumotif] = useState('');
   const [erreurs,setErreurs] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const { register, handleSubmit, formState: { errors } } = useForm();
   const modalRef = useRef();
 

@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;

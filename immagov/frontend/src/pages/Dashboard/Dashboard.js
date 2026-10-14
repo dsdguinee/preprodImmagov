@@ -18,6 +18,7 @@ import {
 import AgentDashboard from "./AgentDashboard";
 import DirecteurDashboard from "./DirecteurDashboard";
 import AdminDashboard from "./AdminDashboard";
+import AdministrateurGeneralDashboard from "./AdministrateurGeneralDashboard";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import LineChart from "../../components/LineChart/LineChart";
@@ -196,6 +197,18 @@ const Dashboard = () => {
         </Helmet>
         <ChangerMdpModal isOpen={isOpen} setIsOpen={setIsOpen} user_id={user.id} />
         <AgentDashboard data={agentData} user={user} />
+      </>
+    );
+  }
+  // Rôle Administrateur Général (Présidence) : tableau de bord en consultation seule
+  if (agentData?.isAdministrateurGeneral) {
+    return (
+      <>
+        <Helmet>
+          <title>Tableau de bord</title>
+        </Helmet>
+        <ChangerMdpModal isOpen={isOpen} setIsOpen={setIsOpen} user_id={user.id} />
+        <AdministrateurGeneralDashboard user={user} />
       </>
     );
   }

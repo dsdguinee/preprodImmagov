@@ -7,8 +7,7 @@ import Erreurs from "../../components/Erreurs/Erreurs";
 import InvoiceDetails from "../../components/InvoiceDetails/InvoiceDetails";
 import Api from "../../services/Api";
 import { ElementContext, UserContext } from "../../services/Context/Context";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import {expression, fraisService} from "../../services/Helpers/fonctions";
 import RejectionModal from "../../components/RejectionModal/RejectionModal";
 
@@ -25,13 +24,13 @@ const PaymentDetails = () => {
   const { id } = useParams();
   const api = new Api();
   const paiement_id = location?.state?.paiementInfo.paiement_id;
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
  
   const [user,setUser] = useState();
   const [validerPaiement,setValiderPaiement] = useState();
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    contentRef: componentRef,
     documentTitle: "Reçu de paiement",
     // A4 sans marge : le reçu a ses propres marges intérieures, et sans marge le navigateur
     // n'a plus de place pour son en-tête / pied de page (titre, date, URL, n° de page).
@@ -229,7 +228,7 @@ const PaymentDetails = () => {
           setIsOpen={setIsRejectionModalOpen} id={id}
         />
         <div className="left">
-          <button className="print-btn"  onClick={handlePrint}>
+          <button className="print-btn"  onClick={() => handlePrint()}>
               Imprimer
           </button>
           {/* {(typeof nouveauPrivilege !== 'undefined' && nouveauPrivilege === "Nouveau Paiement") &&

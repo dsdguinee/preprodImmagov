@@ -7,8 +7,7 @@ import { initialized, objecttoFormData } from "../../services/Helpers/fonctions"
 import toast from "react-hot-toast";
 import Erreurs from "../Erreurs/Erreurs";
 import { ElementContext, UserContext } from "../../services/Context/Context";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 const NewUserModal = ({ isOpen, setIsOpen }) => {
 //   function uniq(a) {
 //     var prims = {"boolean":{}, "number":{}, "string":{}}, objs = [];
@@ -41,7 +40,7 @@ const NewUserModal = ({ isOpen, setIsOpen }) => {
       user
     }
   });
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const [agences,setAgences] = useState([]);
   const[prefectures,setPrefectures] = useState([]);

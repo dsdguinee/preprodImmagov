@@ -1,8 +1,7 @@
-import { useRecoilValue } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomValue } from "../../store/atoms";
 
 const Spinner = () => {
-  const isLoading = useRecoilValue(loadingState);
+  const isLoading = useAtomValue(loadingState);
 
   return (
     <>

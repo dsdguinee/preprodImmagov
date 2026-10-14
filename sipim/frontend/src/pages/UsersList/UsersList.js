@@ -6,8 +6,7 @@ import EditUserModal from "../../components/EditUserModal/EditUserModal";
 import Api from "../../services/Api";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
 import Swal from "sweetalert2";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Erreurs from "../../components/Erreurs/Erreurs";
 
 const UsersList = () => {
@@ -15,7 +14,7 @@ const UsersList = () => {
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [userData,setUserData] = useState([]);
   const [selectedUser,setSelectedUser] = useState({});
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const [userstatus,setUserstatus] = useState(false);
   const url = process.env.REACT_APP_URL.replace('api/','') + 'storage/';

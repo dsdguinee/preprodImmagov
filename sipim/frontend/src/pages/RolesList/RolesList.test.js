@@ -2,15 +2,12 @@ import { screen, render } from "@testing-library/react";
 import RolesList from "./RolesList";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 
 beforeEach(() => {
   render(
-    <RecoilRoot>
       <BrowserRouter>
         <RolesList />
       </BrowserRouter>
-    </RecoilRoot>
   );
 });
 

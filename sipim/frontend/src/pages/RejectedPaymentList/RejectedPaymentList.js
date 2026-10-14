@@ -7,13 +7,12 @@ import Swal from "sweetalert2";
 import withReactContent from 'sweetalert2-react-content';
 import moment from "moment";
 import 'moment/locale/fr';
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Erreurs from "../../components/Erreurs/Erreurs";
 import { UserContext } from "../../services/Context/Context";
 const RejectedPaymentList = () => {
   const[paiementData,setPaiementData] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const [totalPaiement,setTotalPaiement] = useState(0);
   const [isAutorise,setIsAutroise] = useState(false);

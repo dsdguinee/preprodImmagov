@@ -5,8 +5,7 @@ import Select from 'react-select'
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import Erreurs from "../Erreurs/Erreurs";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 import { isEmpty } from "../../services/Helpers/fonctions";
 // import toast from "react-hot-toast";
@@ -14,7 +13,7 @@ import { isEmpty } from "../../services/Helpers/fonctions";
 
 const EditRoleModal = ({ isOpen, setIsOpen,privilegeOption,selectedRole,setSelectedRole,changePrivilege,setChangePrivilege }) => {
   const modalRef = useRef();
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const api = new Api();
   const { register, handleSubmit,reset, formState: { errors } } = useForm({
     defaultValues:{

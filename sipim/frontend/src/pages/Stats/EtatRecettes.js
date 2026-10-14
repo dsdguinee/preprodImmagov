@@ -1,11 +1,10 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-import { useRecoilState } from "recoil";
 import moment from "moment";
 import "moment/locale/fr";
 import Api from "../../services/Api";
 import Erreurs from "../../components/Erreurs/Erreurs";
 import { UserContext } from "../../services/Context/Context";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { fmt } from "../../services/Helpers/dashboard";
 import { exporterCsv, exporterExcel, imprimer } from "../../services/Helpers/exportRapport";
 
@@ -51,7 +50,7 @@ const libelleDate = (groupe, ligne) =>
 const EtatRecettes = () => {
   const api = new Api();
   const { decoupage } = useContext(UserContext);
-  const [, setIsLoading] = useRecoilState(loadingState);
+  const [, setIsLoading] = useAtomState(loadingState);
   const [filtres, setFiltres] = useState({
     debut: moment().startOf("month").format("YYYY-MM-DD"), fin: moment().format("YYYY-MM-DD"),
     groupe: "agence", region_id: "", prefecture_id: "", agence_id: "",

@@ -5,8 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { expression, formatStringNumber, isEmpty, montantPlaque, objecttoFormData, fraisService, montantOperation, libelleOperation } from "../../services/Helpers/fonctions";
 import moment from "moment";
 import "moment/locale/fr";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { ToWords } from "to-words";
 import Api from "../../services/Api";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
@@ -25,7 +24,7 @@ const PaymentList = () => {
   const api = new Api();
   const [paiementData,setPaiementData] = useState([]);
   const[globalMontant,setGlobalMontant] = useState(0);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const {privileges} = useContext(UserContext);
   const{elementsData} = useContext(ElementContext);
   const [erreurs, setErreurs] = useState([]);

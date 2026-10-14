@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 // import { useParams } from "react-router-dom";
-import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/dist/styles/ag-grid.css";
-import "ag-grid-community/dist/styles/ag-theme-material.css";
 import Box from "@mui/material/Box";
 import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
 // import Swal from "sweetalert2";

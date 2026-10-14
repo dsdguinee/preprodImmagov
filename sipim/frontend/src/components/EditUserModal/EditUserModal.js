@@ -2,8 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { AiFillEye, AiFillEyeInvisible, AiOutlineClose } from "react-icons/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 import { objecttoFormData } from "../../services/Helpers/fonctions";
 import toast from "react-hot-toast";
@@ -12,7 +11,7 @@ import { ElementContext, UserContext } from "../../services/Context/Context";
 
 const EditUserModal = ({ isOpen, setIsOpen ,selectedUser,setSelectedUser}) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const[prefectures,setPrefectures] = useState([]);
   const[communes,setCommunes] = useState([]);

@@ -1,7 +1,6 @@
 import { screen, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 import { ElementContext, UserContext } from "../../services/Context/Context";
 import PaymentList from "./PaymentList";
 
@@ -38,7 +37,6 @@ const elementsData = {
 
 beforeEach(() => {
   render(
-    <RecoilRoot>
     <UserContext.Provider value={{ user, userRole, agence, decoupage }}>
       <ElementContext.Provider value={{ elementsData }}>
         <BrowserRouter>
@@ -46,7 +44,6 @@ beforeEach(() => {
         </BrowserRouter>
       </ElementContext.Provider>
     </UserContext.Provider>
-    </RecoilRoot>
   );
 });
 

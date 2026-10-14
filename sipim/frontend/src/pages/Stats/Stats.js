@@ -1,9 +1,8 @@
 import Box from "@mui/material/Box";
 import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
 import { useContext, useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
 import Erreurs from "../../components/Erreurs/Erreurs";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 import { ElementContext, UserContext } from "../../services/Context/Context";
 import { expression, objecttoFormData } from "../../services/Helpers/fonctions";
@@ -14,7 +13,7 @@ import EtatRecettes from "./EtatRecettes";
 const Stats = () => {
   const api = new Api();
   const [erreurs,setErreurs] = useState();
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [paiementData,setPaiementData] = useState([]);
   const {elementsData} = useContext(ElementContext);
   const {decoupage} = useContext(UserContext);

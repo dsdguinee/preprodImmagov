@@ -3,9 +3,8 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { BsFillArrowDownCircleFill } from 'react-icons/bs'
 import { useNavigate } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
 import Erreurs from '../../components/Erreurs/Erreurs';
-import { loadingState } from '../../recoil/atoms/loadingAtom';
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from '../../services/Api';
 import { UserContext } from '../../services/Context/Context'
 import { objecttoFormData } from '../../services/Helpers/fonctions';
@@ -14,7 +13,7 @@ const UserSettings = () => {
   const{user,setUser} = useContext(UserContext);
   const[userInfo,setUserInfo] = useState(user);
   const url = process.env.REACT_APP_URL.replace('api/','') + 'storage/';
-  const [isLoading, setIsLoading] = useRecoilState(loadingState);
+  const [isLoading, setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const api = new Api();
   const navigate = useNavigate();

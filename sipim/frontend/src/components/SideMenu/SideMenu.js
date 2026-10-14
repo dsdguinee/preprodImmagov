@@ -1,12 +1,11 @@
 import { useContext } from "react";
 import { NavLink } from "react-router-dom";
-import { useRecoilState } from "recoil";
-import { sideMenuState } from "../../recoil/atoms/sideMenuAtom";
+import { sideMenuState, useAtomState } from "../../store/atoms";
 import { UserContext } from "../../services/Context/Context";
-import OutsideClickHandler from "react-outside-click-handler";
+import OutsideClickHandler from "../OutsideClickHandler/OutsideClickHandler";
 
 const SideMenu = () => {
-  const [open, setOpen] = useRecoilState(sideMenuState);
+  const [open, setOpen] = useAtomState(sideMenuState);
   const { userRole, privileges } = useContext(UserContext);
   const privilegeExiste = (privileName, privilegestable) => {
     const privilege = privilegestable.filter(

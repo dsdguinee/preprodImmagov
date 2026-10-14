@@ -2,8 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { IoIosArrowDown, IoIosMenu } from "react-icons/io";
 import { NavLink } from 'react-router-dom';
-import { useRecoilState } from "recoil";
-import { sideMenuState } from "../../recoil/atoms/sideMenuAtom";
+import { sideMenuState, useAtomState } from "../../store/atoms";
 import MenuDropdown from "../MenuDropdown/MenuDropdown";
 import { UserContext } from "../../services/Context/Context";
 import { isEmpty } from "../../services/Helpers/fonctions";
@@ -20,7 +19,7 @@ const Navbar = () => {
   const location = useLocation();
   const pathName = location.pathname;
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [openSideMenu, setOpenSideMenu] = useRecoilState(sideMenuState);
+  const [openSideMenu, setOpenSideMenu] = useAtomState(sideMenuState);
   const {user,userRole,agence,decoupage,privileges} = useContext(UserContext);
   let profilePhoto ;
   useEffect(() => {

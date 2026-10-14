@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState } from "recoil";
 import toast from "react-hot-toast";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
 import Erreurs from "../../components/Erreurs/Erreurs";
@@ -9,7 +8,7 @@ import { ChoiceTiles, ConfirmDialog, Field, FormSection, PhoneInput, SegmentedCo
 import { ElementContext, UserContext } from "../../services/Context/Context";
 import { commission, formatStringNumber, LIBELLES_OPERATION, MONTANT_MIN_REFORME, objecttoFormData } from "../../services/Helpers/fonctions";
 import { libelleTranche, MESURES, trancheCorrespond } from "../../services/Helpers/carteGrise";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 
 const MONTANT_PLAQUE = 350000; // plaques EP et VA
@@ -58,7 +57,7 @@ const Payment = () => {
   const navigate = useNavigate();
   const { elementsData } = useContext(ElementContext);
   const { agence, privileges } = useContext(UserContext);
-  const [, setIsLoading] = useRecoilState(loadingState);
+  const [, setIsLoading] = useAtomState(loadingState);
   const [p, setP] = useState(PAIEMENT_VIDE);
   const [docs, setDocs] = useState(DOCUMENTS_VIDES);
   const [plaque, setPlaque] = useState("");

@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 
 import Payment from "./Payment";
 import { UserContext, ElementContext } from "../../services/Context/Context";
@@ -32,13 +31,11 @@ beforeEach(() => {
   );
   render(
     <MemoryRouter>
-      <RecoilRoot>
         <UserContext.Provider value={{ user: "", userRole: "", agence: { agence_id: 1, commune_id: 1 }, privileges }}>
           <ElementContext.Provider value={{ elementsData }}>
             <Payment />
           </ElementContext.Provider>
         </UserContext.Provider>
-      </RecoilRoot>
     </MemoryRouter>
   );
 });
@@ -151,7 +148,7 @@ describe("Formulaire de nouveau paiement", () => {
       ["Immatriculation", "Réimmatriculation", "Mutation", "Réforme"].forEach((o) =>
         expect(screen.queryByLabelText(o)).not.toBeInTheDocument());
       // Vignette toujours payable
-      expect(screen.getByRole("option", { name: /jusqu'à 12 CV/ })).toBeInTheDocument();
+      expect(await screen.findByRole("option", { name: /jusqu'à 12 CV/ })).toBeInTheDocument();
     });
 
     it("ne propose que Autres tant qu'une opération est en cours", async () => {

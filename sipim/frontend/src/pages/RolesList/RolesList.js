@@ -3,8 +3,7 @@ import { Box } from "@mui/material";
 import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
 import EditRoleModal from "../../components/EditRoleModal/EditRoleModal";
 import NewRoleModal from "../../components/NewRoleModal/NewRoleModal";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 import Swal from "sweetalert2";
 import Erreurs from "../../components/Erreurs/Erreurs";
@@ -16,7 +15,7 @@ const RolesList = () => {
   const [isEditRoleModalOpen, setIsEditRoleModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState({});
   const [roleData,setRoleData] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [privilegeOption,setPrivilegeOption] = useState([]);
   const [selectedPrivileges,setSelectedPrivileges] = useState([]);
   const[erreurs,setErreurs] = useState([]);

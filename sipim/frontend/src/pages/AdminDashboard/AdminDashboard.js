@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useRecoilState } from "recoil";
 import {
   BarChart,
   Bar,
@@ -15,7 +14,7 @@ import moment from "moment";
 import "moment/locale/fr";
 import Api from "../../services/Api";
 import { UserContext } from "../../services/Context/Context";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { isEmpty } from "../../services/Helpers/fonctions";
 import { COLORS, STATUTS, PERIODES, num, fmt, pct, fmtMoney, docLabel, variation, Pill, Delta, MoneyTooltip, CountTooltip, Repartition } from "../../services/Helpers/dashboard";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
@@ -38,7 +37,7 @@ const SEUIL_REJET = 5;
 const AdminDashboard = () => {
   const api = new Api();
   const { user } = useContext(UserContext);
-  const [, setIsLoading] = useRecoilState(loadingState);
+  const [, setIsLoading] = useAtomState(loadingState);
   const [periode, setPeriode] = useState("mois");
   // Saisie en cours et intervalle effectivement appliqué (la requête ne part qu'au clic sur Appliquer)
   const [intervalle, setIntervalle] = useState({ debut: moment().startOf("month").format("YYYY-MM-DD"), fin: moment().format("YYYY-MM-DD") });

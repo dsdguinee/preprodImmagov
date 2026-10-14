@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaRegWindowClose } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import Api from "../../services/Api";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import { objecttoFormData } from "../../services/Helpers/fonctions";
 import toast from "react-hot-toast";
 import Erreurs from "../Erreurs/Erreurs";
@@ -15,7 +14,7 @@ const EditCommuneModal = ({ isOpen, setIsOpen, selectedCommune, onSaved }) => {
   const [erreurs, setErreurs] = useState([]);
   const [champErreur, setChampErreur] = useState("");
   const [nom, setNom] = useState("");
-  const [isLoading, setIsLoading] = useRecoilState(loadingState);
+  const [isLoading, setIsLoading] = useAtomState(loadingState);
   const api = new Api();
 
   useEffect(() => {

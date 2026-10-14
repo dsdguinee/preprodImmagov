@@ -273,6 +273,12 @@ export const dashboardDirecteur = (du, au) => {
   }).catch((ex) => ex?.response?.data || { success: false });
   return result;
 }
+// Tableau de bord de l'Administrateur Général (lecture seule) pour la période [du, au] (dates AAAA-MM-JJ)
+export const dashboardAdministrateurGeneral = (du, au) => {
+  return getConnexion().get(`/immatriculation/dashboardAdministrateurGeneral`, { params: { du, au } })
+    .then((resp) => resp.data)
+    .catch((ex) => ex?.response?.data || { success: false });
+}
 export const dashboardStatGraph1 = (mois = '')=>{
   const result = getConnexion().get(`/immatriculation/dashboardStat/graph1/${mois}`).then((resp) => {
       if(resp.data.success)

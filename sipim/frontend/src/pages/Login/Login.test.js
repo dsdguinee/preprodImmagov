@@ -1,18 +1,15 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 import Login from "./Login";
 
 beforeEach(() => {
   render(
-    <RecoilRoot>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
         </Routes>
       </BrowserRouter>
-    </RecoilRoot>
   );
 });
 

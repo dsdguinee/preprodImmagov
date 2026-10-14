@@ -3,7 +3,6 @@ import { FaRegWindowClose } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import Select from 'react-select'
 import { fakePrivileges } from "../../utils/data/fakeData";
-import { getRoles } from "@testing-library/react";
 import { getAllPrivileges, newRole } from "../../services/auth.service";
 import Spinner from "../Spinner/Spinner";
 import Erreurs from "../erreurs/Erreurs";

@@ -49,7 +49,8 @@ class AdminDashboardController extends BaseController
                 // Intervalle libre : comparé à l'intervalle de même durée qui le précède
                 $debut = Carbon::parse($dateDebut)->startOfDay();
                 $fin = Carbon::parse($dateFin)->endOfDay();
-                $jours = $debut->diffInDays($fin) + 1;
+                // Carbon 3 : diffInDays renvoie un float signé ; on garde le nombre de jours entiers en valeur absolue
+                $jours = (int) $debut->diffInDays($fin, true) + 1;
                 return [$debut, $fin, $debut->copy()->subDays($jours), $fin->copy()->subDays($jours)];
             case 'jour':
                 $debut = $now->copy()->startOfDay();

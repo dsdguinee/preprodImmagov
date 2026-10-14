@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 import DirecteurDashboard from "./DirecteurDashboard";
 import { UserContext } from "../../services/Context/Context";
 
@@ -38,11 +37,9 @@ beforeEach(() => {
     Promise.resolve(url.startsWith("/agence") ? { status: 200, agences: [{ agence_id: 1, nom_agence: "SACOF" }] } : REPONSE));
   render(
     <MemoryRouter>
-      <RecoilRoot>
         <UserContext.Provider value={{ user: { prenom: "fatou" } }}>
           <DirecteurDashboard />
         </UserContext.Provider>
-      </RecoilRoot>
     </MemoryRouter>
   );
 });

@@ -6,8 +6,7 @@ import { motion, AnimatePresence, m } from "framer-motion";
 import { useForm } from "react-hook-form";
 // import toast from "react-hot-toast";
 import Api from "../../services/Api";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Erreurs from "../Erreurs/Erreurs";
 import { objecttoFormData } from "../../services/Helpers/fonctions";
 import toast from "react-hot-toast";
@@ -24,7 +23,7 @@ const NewAgencyModal = ({ isOpen, setIsOpen,prefectures,communes }) => {
   const modalRef = useRef();
   const [erreurs, setErreurs] = useState([]);
   const[selectedCommunes,setSelectedCommunes] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [agenceErreur,setAgenceErreur] = useState({ 
     error:'',
   });

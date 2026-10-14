@@ -34,12 +34,12 @@ const DetailsCarteGrise = () => {
   // ? Impression
   const rectoRef = useRef();
   const handlePrintRecto = useReactToPrint({
-    content: () => rectoRef.current,
+    contentRef: rectoRef,
   });
 
   const versoRef = useRef();
   const handlePrintVerso = useReactToPrint({
-    content: () => versoRef.current,
+    contentRef: versoRef,
   
   });
   // ? Fin impression
@@ -90,8 +90,8 @@ const DetailsCarteGrise = () => {
       {/* {(isPrivilegeImpression && immaData.status !== 3) && <button type="button" className="primary" style={{marginTop:'15px'}}>Imprimer</button>} */}
       {(isPrivilegeImpression && immaData.status !== 3) &&
         <div className="print-btns">
-          <button onClick={handlePrintRecto} className="primary"> <AiOutlinePrinter/> Imprimer Recto</button>
-          <button onClick={handlePrintVerso} className="secondary"  style={{marginLeft:'15px'}}><AiOutlinePrinter/> Imprimer Verso</button>
+          <button onClick={() => handlePrintRecto()} className="primary"> <AiOutlinePrinter/> Imprimer Recto</button>
+          <button onClick={() => handlePrintVerso()} className="secondary"  style={{marginLeft:'15px'}}><AiOutlinePrinter/> Imprimer Verso</button>
           <button type="button" className="secondary" onClick={printed}>Terminer</button>
         </div>
       }

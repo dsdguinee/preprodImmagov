@@ -82,6 +82,7 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::get('/dashboardAgent', [ImmatriculationController::class, 'dashboardAgent']);
         Route::get('/dashboardDirecteur', [ImmatriculationController::class, 'dashboardDirecteur']);
         Route::get('/dashboardAdmin', [ImmatriculationController::class, 'dashboardAdmin']);
+        Route::get('/dashboardAdministrateurGeneral', [ImmatriculationController::class, 'dashboardAdministrateurGeneral']);
         Route::get('/dashboardStat/graph1/{mois?}', [ImmatriculationController::class, 'graph1']);
         Route::get('/dashboardStat/graph2', [ImmatriculationController::class, 'graph2']);
         Route::get('/rejet/{immatriculation_id}', [ImmatriculationController::class, 'getrejetbyimmatriculation']);

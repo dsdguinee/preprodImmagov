@@ -8,8 +8,7 @@ import {
   objecttoFormData,
 } from "../../services/Helpers/fonctions";
 import Api from "../../services/Api";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 
 const StepTwo = ({
   prevStep,
@@ -26,7 +25,7 @@ const StepTwo = ({
   const { elementsData } = useContext(ElementContext);
   const{agence} = useContext(UserContext);
   const [erreurs, setErreurs] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
 
   const api = new Api();
   const toWords = new ToWords({

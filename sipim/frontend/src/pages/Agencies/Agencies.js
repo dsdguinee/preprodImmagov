@@ -4,8 +4,7 @@ import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
 import NewAgencyModal from "../../components/NewAgencyModal/NewAgencyModal";
 import EditAgencyModal from "../../components/EditAgencyModal/EditAgencyModal";
 import Api from "../../services/Api";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 
 import Erreurs from "../../components/Erreurs/Erreurs";
 import DocumentTitle from "../../components/DocumentTitle/DocumentTitle"
@@ -16,7 +15,7 @@ const Agencies = () => {
   const [isNewAgencyModalOpen, setIsNewAgencyModalOpen] = useState(false);
   const [isEditAgencyModalOpen, setIsEditAgencyModalOpen] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState(null);
-  const [isLoading, setIsLoading] = useRecoilState(loadingState);
+  const [isLoading, setIsLoading] = useAtomState(loadingState);
   const [agencesData, setAgencesData] = useState([]);
   const [erreurs, setErreurs] = useState([]);
   const [prefectures, setPrefectures] = useState([]);

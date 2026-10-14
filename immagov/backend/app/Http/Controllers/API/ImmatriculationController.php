@@ -777,6 +777,11 @@ class ImmatriculationController extends BaseController
     private function estAdministrateur(){
         return $this->aDroit('Gestion des Utilisateurs') && !$this->aDroitValidation();
     }
+    // Administrateur Général (Présidence) : rôle reconnu par son nom, en consultation seule
+    const ROLE_ADMINISTRATEUR_GENERAL = 'Administrateur Général';
+    private function estAdministrateurGeneral(){
+        return DB::table('roles')->where('role_id', Auth::user()->role_id)->value('nom_role') === self::ROLE_ADMINISTRATEUR_GENERAL;
+    }
 
     /**
      * Tableau de bord de l'administrateur : comptes et rôles, organismes, réservations de numéros,
@@ -930,7 +935,8 @@ class ImmatriculationController extends BaseController
 
             $du = $request->du ? Carbon::parse($request->du)->startOfDay() : Carbon::now()->startOfMonth();
             $au = $request->au ? Carbon::parse($request->au)->endOfDay() : Carbon::now()->endOfDay();
-            $jours = $du->diffInDays($au) + 1;
+            // Carbon 3 : diffInDays renvoie un float signé ; on garde le nombre de jours entiers en valeur absolue
+            $jours = (int) $du->diffInDays($au, true) + 1;
             // Période précédente de même durée, pour la comparaison
             $duPrec = $du->copy()->subDays($jours);
             $auPrec = $du->copy()->subSecond();
@@ -1044,6 +1050,116 @@ class ImmatriculationController extends BaseController
         }
     }
 
+    // Seuil de retard des dossiers en attente (jours)
+    const RETARD_JOURS = 7;
+
+    /**
+     * Tableau de bord de l'Administrateur Général (Présidence), en lecture seule, pour la période [du, au]
+     * (dates Y-m-d ; par défaut le mois en cours). Synthèse sans données nominatives.
+     * - Dépendent de la période : tableau des opérations, validations, délais, réformes (et la période précédente de même durée).
+     * - Indépendants de la période : parc, organismes, genres, entrées / sorties sur 12 mois, dossiers en attente.
+     */
+    public function dashboardAdministrateurGeneral(Request $request){
+        if(!$this->estAdministrateurGeneral())
+            return response()->json(['success' => false, 'status' => 403, 'messages' => ['erreur' => ['Accès réservé à l\'Administrateur Général.']]], 403);
+        try {
+            $validator = Validator::make($request->all(), [
+                'du' => 'nullable|date_format:Y-m-d',
+                'au' => 'nullable|date_format:Y-m-d|after_or_equal:du',
+            ], [
+                'du.date_format' => 'La date de début est invalide.',
+                'au.date_format' => 'La date de fin est invalide.',
+                'au.after_or_equal' => 'La date de fin doit suivre la date de début.',
+            ]);
+            if($validator->fails())
+                return response()->json(['success' => false, 'status' => 400, 'messages' => $validator->messages()]);
+
+            $du = $request->du ? Carbon::parse($request->du)->startOfDay() : Carbon::now()->startOfMonth();
+            $au = $request->au ? Carbon::parse($request->au)->endOfDay() : Carbon::now()->endOfDay();
+            $jours = (int) $du->diffInDays($au, true) + 1;
+            $duPrec = $du->copy()->subDays($jours);
+            $auPrec = $du->copy()->subSecond();
+            $retard = Carbon::now()->subDays(self::RETARD_JOURS);
+            $debut12 = Carbon::now()->startOfMonth()->subMonths(11);
+
+            // Une ligne du tableau des opérations : déposées, validées, rejetées et délai moyen (en jours) sur [debut, fin].
+            // Immatriculation validée puis mutée ou réformée (status 3, 4) : reste comptée comme validée.
+            $operations = [
+                'immatriculations' => ['table' => 'immatriculations', 'decision' => 'date_decision', 'valide' => 'status in (1,3,4)'],
+                'mutations' => ['table' => 'mutations', 'decision' => 'valided_at', 'valide' => 'status = 1'],
+                'reformes' => ['table' => 'reformes', 'decision' => 'updated_at', 'valide' => 'status = 1'],
+            ];
+            $ligne = function ($op, $debut, $fin) {
+                $r = DB::selectOne("select (select count(*) from {$op['table']} where created_at between ? and ?) deposees,
+                                           sum({$op['valide']}) validees, sum(status = 2) rejetees,
+                                           avg(timestampdiff(hour, created_at, {$op['decision']})) / 24 delai
+                                    from {$op['table']} where status in (1,2,3,4) and {$op['decision']} between ? and ?", [$debut, $fin, $debut, $fin]);
+                return ['deposees' => (int) $r->deposees, 'validees' => (int) $r->validees, 'rejetees' => (int) $r->rejetees,
+                        'delai' => $r->delai !== null ? round((float) $r->delai, 1) : null];
+            };
+            $tableau = [];
+            foreach ($operations as $cle => $op) {
+                $attente = DB::selectOne("select count(*) total, sum(created_at < ?) retard, max(datediff(now(), created_at)) plus_ancien
+                                          from {$op['table']} where status = 0", [$retard]);
+                // Taux de rejet de référence : 12 derniers mois
+                $an = $ligne($op, $debut12, Carbon::now());
+                $tableau[$cle] = $ligne($op, $du, $au) + [
+                    'attente' => (int) $attente->total, 'retard' => (int) $attente->retard, 'plusAncien' => (int) $attente->plus_ancien,
+                    'tauxRejet12Mois' => ($an['validees'] + $an['rejetees']) ? round($an['rejetees'] * 100 / ($an['validees'] + $an['rejetees']), 1) : null,
+                ];
+            }
+            // Cartes grises : impressions sur la période, délai depuis la validation ; à imprimer = validées non imprimées
+            $impressions = DB::selectOne("select count(*) n, avg(timestampdiff(hour, i.date_decision, p.created_at)) / 24 delai
+                                          from impressions p join immatriculations i on i.immatriculation_id = p.immatriculation_id
+                                          where p.created_at between ? and ?", [$du, $au]);
+            $aImprimer = DB::selectOne("select count(*) total, sum(date_decision < ?) retard from immatriculations where status = 1 and imprimer = 0", [$retard]);
+            $tableau['cartesGrises'] = ['imprimees' => (int) $impressions->n,
+                'delai' => $impressions->delai !== null ? round((float) $impressions->delai, 1) : null,
+                'attente' => (int) $aImprimer->total, 'retard' => (int) $aImprimer->retard];
+
+            $immatPrec = $ligne($operations['immatriculations'], $duPrec, $auPrec);
+            $reformesPrec = $ligne($operations['reformes'], $duPrec, $auPrec);
+
+            // Entrées (immatriculations validées) et sorties (réformes validées) par mois, 12 derniers mois, mois vides à 0
+            $entrees = collect(DB::select("select date_format(date_decision,'%Y-%m') mois, count(*) n from immatriculations
+                                           where status in (1,3,4) and date_decision >= ? group by mois", [$debut12]))->keyBy('mois');
+            $sorties = collect(DB::select("select date_format(updated_at,'%Y-%m') mois, count(*) n from reformes
+                                           where status = 1 and updated_at >= ? group by mois", [$debut12]))->keyBy('mois');
+            $serie = [];
+            for ($i = 0; $i < 12; $i++) {
+                $mois = $debut12->copy()->addMonths($i)->format('Y-m');
+                $serie[] = ['mois' => $mois, 'entrees' => (int) ($entrees[$mois]->n ?? 0), 'sorties' => (int) ($sorties[$mois]->n ?? 0)];
+            }
+
+            // Parc en service : immatriculations validées (mutées comprises), hors réformes
+            $parc = DB::selectOne("select count(*) total, sum(modeImmatriculation='EP') ep, sum(modeImmatriculation='VA') va from immatriculations where status in (1,4)");
+            $organismes = DB::select("select coalesce(mi.nom, i.autreministere) nom, count(*) n, sum(i.modeImmatriculation='EP') ep, sum(i.modeImmatriculation='VA') va
+                                      from immatriculations i left join ministeres mi on mi.ministere_id = i.minister_id
+                                      where i.status in (1,4) group by coalesce(mi.nom, i.autreministere) order by n desc");
+            $genres = DB::select("select coalesce(g.nom, 'Non renseigné') nom, count(*) n
+                                  from immatriculations i join vehicules v on v.vehicule_id = i.vehicule_id
+                                  left join genres g on g.genre_id = v.genre
+                                  where i.status in (1,4) group by coalesce(g.nom, 'Non renseigné') order by n desc");
+
+            return response()->json([
+                'success' => true,
+                'periode' => ['du' => $du->toDateString(), 'au' => $au->toDateString(), 'jours' => $jours],
+                'retardJours' => self::RETARD_JOURS,
+                'operations' => $tableau,
+                'precedente' => ['validees' => $immatPrec['validees'], 'reformes' => $reformesPrec['validees']],
+                'serie' => $serie,
+                'parc' => ['total' => (int) $parc->total, 'ep' => (int) $parc->ep, 'va' => (int) $parc->va],
+                'organismes' => array_slice(array_map(fn ($o) => ['nom' => $o->nom, 'n' => (int) $o->n, 'ep' => (int) $o->ep, 'va' => (int) $o->va], $organismes), 0, 8),
+                'nbOrganismes' => count($organismes),
+                'genres' => array_map(fn ($g) => ['nom' => $g->nom, 'n' => (int) $g->n], $genres),
+                'aApprouver' => DB::table('immatriculations')->where('status', 0)->where('minister_id', OrganismeService::AUTRE_MINISTERE)->count(),
+            ]);
+        }
+        catch (QueryException $ex){
+            return response()->json(['success' => false, 'status' => 400, 'messages' => ['erreur' => [$ex->getMessage()]]]);
+        }
+    }
+
     /**
      * Tableau de bord du rôle Agent : uniquement les dossiers créés par l'utilisateur connecté.
      * isAgent indique au frontend s'il doit afficher ce tableau de bord (rôle dont le nom contient « agent »).
@@ -1127,6 +1243,7 @@ class ImmatriculationController extends BaseController
                 'isAgent' => $isAgent,
                 'isDirecteur' => $this->aDroitValidation(),
                 'isAdministrateur' => $this->estAdministrateur(),
+                'isAdministrateurGeneral' => $this->estAdministrateurGeneral(),
                 'stats' => $stats,
                 'moisCourant' => $parMois[5]['total'],
                 'moisPrecedent' => $parMois[4]['total'],

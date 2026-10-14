@@ -6,8 +6,7 @@ import StepTwo from "../../components/PaymentSteps/StepTwo";
 import StepThree from "../../components/PaymentSteps/StepThree";
 import { useParams } from "react-router-dom";
 import Api from "../../services/Api";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Erreurs from "../../components/Erreurs/Erreurs";
 import moment from "moment/moment";
 import { ElementContext } from "../../services/Context/Context";
@@ -22,7 +21,7 @@ const useFocus = () => {
 }
 const PaymentResubmission = () => {
   const [activeStep, setActiveStep] = useState(1);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [erreurs,setErreurs] = useState([]);
   const {id} = useParams();
   const { elementsData } = useContext(ElementContext);

@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // import Select from "react-select";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useRecoilState } from "recoil";
-import { loadingState } from "../../recoil/atoms/loadingAtom";
+import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 import { objecttoFormData } from "../../services/Helpers/fonctions";
 import Erreurs from "../Erreurs/Erreurs";
@@ -22,7 +21,7 @@ const EditAgencyModal = ({ isOpen, setIsOpen,prefectures,communes,selectedAgency
   const modalRef = useRef();
   const [erreurs, setErreurs] = useState([]);
   const[selectedCommunes,setSelectedCommunes] = useState([]);
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
   const [inputRef, setInputFocus] = useFocus();
   const [agenceErreur,setAgenceErreur] = useState({ 
     error:'',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useContext } from "react";
-import { useSpring, animated } from "react-spring";
+import { useSpring, animated } from "@react-spring/web";
 import { onboardingText } from "../../utils/texts";
 import { useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
@@ -9,8 +9,7 @@ import DocumentTitle from "../../components/DocumentTitle/DocumentTitle";
 import toast from 'react-hot-toast';
 import dsdlogo from '../../assets/images/logo-2.png'
 
-import { useRecoilState } from 'recoil'
-import { loadingState } from "../../recoil/atoms/loadingAtom"; 
+import { loadingState, useAtomState } from "../../store/atoms";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ const Login = () => {
   const [position, setPosition] = useState(0);
   const [erreurs, setErreurs] = useState([]);
   
-  const [isLoading,setIsLoading] = useRecoilState(loadingState);
+  const [isLoading,setIsLoading] = useAtomState(loadingState);
 
   const [user,setUser] = useState({
       login:'',
