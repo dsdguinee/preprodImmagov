@@ -6,6 +6,7 @@ import { sideMenuState, useAtomState } from "../../store/atoms";
 import MenuDropdown from "../MenuDropdown/MenuDropdown";
 import { UserContext } from "../../services/Context/Context";
 import { isEmpty } from "../../services/Helpers/fonctions";
+import { menuDeSection } from "../../app/modules";
 import dsdlogo from '../../assets/images/logo-2.png'
 
 let nomCommune = '';
@@ -15,14 +16,8 @@ const privilegeExiste = (privileName,privilegestable) => {
       return true;
    return false   
 }
-// Sous-menus d'administration, chacun visible selon son privilège
-export const ADMINISTRATION = [
-  { to: "users/list", label: "Utilisateurs", privilege: "Utilisateur" },
-  { to: "users/roles/list", label: "Rôles et Privilèges", privilege: "Role&Privilege" },
-  { to: "agencies/list", label: "Agences", privilege: "Agence" },
-  { to: "communes/list", label: "Communes", privilege: "Commune" },
-  { to: "ministeres/list", label: "Ministères & entreprises publiques", privilege: "Ministère" },
-];
+// Sous-menus d'administration, déclarés par les modules (chacun visible selon son privilège)
+export const ADMINISTRATION = menuDeSection("administration");
 
 const Navbar = () => {
   const location = useLocation();

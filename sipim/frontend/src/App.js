@@ -11,22 +11,18 @@ import Footer from "./components/Footer/Footer";
 import Payment from "./pages/Payment/Payment";
 import PaymentList from "./pages/PaymentList/PaymentList";
 import PaymentDetails from "./pages/PaymentDetails/PaymentDetails";
-import UsersList from "./pages/UsersList/UsersList";
 import PaymentResubmission from "./pages/PaymentResubmission/PaymentResubmission";
 import RejectedPaymentList from "./pages/RejectedPaymentList/RejectedPaymentList";
 import UserSettings from "./pages/UserSettings/UserSettings";
 import SideMenu from "./components/SideMenu/SideMenu";
-import LoginProtected from "./services/Auth/LoginProtected";
-import Connected from "./services/Auth/Connected";
+import LoginProtected from "./core/auth/LoginProtected";
+import Connected from "./core/auth/Connected";
 import Spinner from "./components/Spinner/Spinner";
 import ChargementPage from "./components/Spinner/ChargementPage";
 import Api from "./services/Api";
-import { UserContext,ElementContext } from "./services/Context/Context";
+import { UserContext,ElementContext } from "./core/context/contexts";
 import { Toaster } from 'react-hot-toast';
-import RolesList from "./pages/RolesList/RolesList";
-import Agencies from "./pages/Agencies/Agencies";
-import Communes from "./pages/Communes/Communes";
-import Ministeres from "./pages/Ministeres/Ministeres";
+import { routesDesModules } from "./app/modules";
 import Stats from "./pages/Stats/Stats";
 import AutorisedPaymentList from "./pages/AutorisedPaymentList/AutorisedPaymentList";
 import HistoriqueList from "./pages/HistoriqueList/HistoriqueList";
@@ -124,19 +120,10 @@ function App() {
                   <Route path="new/:id" element={<LoginProtected><PaymentResubmission /></LoginProtected>} />
                   {/* <Route path="list" element={<LoginProtected><PaymentList /></LoginProtected>} /> */}
                 </Route> 
-                <Route path="users">
-                  <Route path="list" element={<LoginProtected><UsersList /></LoginProtected>} />
-                  <Route path="roles/list" element={<LoginProtected><RolesList /></LoginProtected>} />
-                </Route>
-                <Route path="agencies">
-                  <Route path="list" element={<LoginProtected><Agencies /></LoginProtected>} />
-                </Route>
-                <Route path="communes">
-                  <Route path="list" element={<LoginProtected><Communes /></LoginProtected>} />
-                </Route>
-                <Route path="ministeres">
-                  <Route path="list" element={<LoginProtected><Ministeres /></LoginProtected>} />
-                </Route>
+                {/* Routes déclarées par les modules (app/modules.js), toutes réservées aux utilisateurs connectés */}
+                {routesDesModules.map((r) => (
+                  <Route key={r.path} path={r.path} element={<LoginProtected>{r.element}</LoginProtected>} />
+                ))}
                 <Route path="myaccount">
                   <Route path="settings" element={<UserSettings />} />
                 </Route>
