@@ -1,2 +1,2 @@
 // Déplacé dans core/context
-export * from "../../core/context/contexts";
+export { UserContext, ElementContext } from "../../core/context/contexts";
