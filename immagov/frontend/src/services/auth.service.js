@@ -1,47 +1,14 @@
-import axios from 'axios';
-import { suivreRequetes } from './chargement';
+import { http } from '../core/http/httpClient';
+import { tokenStore } from '../core/auth/tokenStore';
+import { utilisateursApi, rolesApi } from '../modules/administration/api';
+
+// Instances axios fournies par le client HTTP du core (jeton, URL, suivi du spinner)
 export function getConnexion(){
-  try{
-    return suivreRequetes(getTokent() ?  axios.create({
-        baseURL:`${process.env.REACT_APP_URL}/api/`,
-        headers:{
-          "Cache-Control":"no-Cache",
-          "Access-Control-Allow-Origin":"*",
-          'Content-Type': 'application/json',
-          "Authorization": `Bearer ${getTokent()}`
-        }
-      })
-      :axios.create({
-        baseURL:`${process.env.REACT_APP_URL}/api/`,
-        headers:{
-          "Cache-Control":"no-Cache",
-          "Content-Type":"application/json",
-        }
-      }));
-    }
-    catch(ex){
-      localStorage.removeItem('token');
-    }
+  return http.instance();
 }
 
 export function getConnexionFormData(){
-  return suivreRequetes(getTokent() ?  axios.create({
-      baseURL:`${process.env.REACT_APP_URL}/api/`,
-      headers:{
-        "Cache-Control":"no-Cache",
-        "Access-Control-Allow-Origin":"*",
-        // 'Content-Type': 'application/json',
-        "Content-Type":"multipart/form-data",
-        "Authorization": `Bearer ${getTokent()}`
-      }
-    })
-    :axios.create({
-      baseURL:`${process.env.REACT_APP_URL}/api/`,
-      headers:{
-        "Cache-Control":"no-Cache",
-        "Content-Type":"application/json",
-      }
-    }))
+  return http.instance({ multipart: true });
 }
 
 export function responseFormat(data, status){
@@ -52,17 +19,9 @@ export function createConnexion(token){
     setToken(token);
 }
 
-export function getTokent(){
-    return localStorage.getItem("token");
-}
-
-export function removeToken(){
-  localStorage.removeItem("token")
-}
-
-export function setToken(token){
-    localStorage.setItem("token", token);
-}
+export const getTokent = tokenStore.get;
+export const removeToken = tokenStore.clear;
+export const setToken = tokenStore.set;
 
 export function login(credential){
   return getConnexion().post("/login",{
@@ -71,26 +30,24 @@ export function login(credential){
   })
 }
 export async function logout(){
-    if(localStorage.getItem('token')){
-      localStorage.removeItem('token');
-    }
+    tokenStore.clear();
 }
 export const getCurrentUser = async()=> {
-  if(localStorage.getItem('token') !== null){
+  if(tokenStore.get() !== null){
     const reponse =  await getConnexion().get('user').then((resp) => {
           return resp.data;
-    }).catch((ex) => { localStorage.removeItem('token');});
+    }).catch((ex) => { tokenStore.clear();});
     return reponse;
   }
   return null;
 }
 export const getUserRole =  async() => {
-  if(localStorage.getItem('token') !== null){
+  if(tokenStore.get() !== null){
     
     const reponse = await getConnexion().get('/utilisateur/user-role/getrole').then((resp) => {
    
        return resp.data.nom_role;
-    }).catch(ex => {localStorage.removeItem('token');});
+    }).catch(ex => {tokenStore.clear();});
   return reponse;
  }
  return null;
@@ -109,74 +66,11 @@ export const getUserRolePrivilege = async() => {
   });
   return response;
 } 
-//get all Privilege
-export const getAllPrivileges = async() => {
-  const response = await getConnexion().get('/role-privilege/privileges').then((resp) => {
-      return resp.data;
-  });
-  return response;
-} 
-//add New Role
-export const newRole = async(data) => {
-  const response = await getConnexion().post('/role-privilege/new-role',data).then((resp) => {
-      return resp.data;
-  });
-  return response;
-} 
-//get All role 
-export const getAllRoles = async(data) => {
-  const response = await getConnexion().get('/role-privilege/roles').then((resp) => {
-      return resp.data;
-  });
-  return response;
-} 
-//get role et Permission
-export const getRolePrivilege = async () => {
-  const response = await getConnexion().get('/role-privilege/roles-privileges').then((resp) => {
-    return resp.data;
-});
-return response;
-}
-//get Privilege by Role_id
-export const PrivilegeByRole_Id = async (role_id) => {
-  const response = await getConnexion().get(`/role-privilege/roles-privileges/${role_id}`).then((resp) => {
-    return resp.data;
-});
-return response;
-}
-//enabled and disabled role
-export const ActiveDesactive = async (data) => {
-  const response = await getConnexion().post("/role-privilege/ActiveDesactive",data).then((resp) => {
-    return resp.data;
-});
-return response;
-}  
-//Update Role
-export const UpdateRole = async (data) => {
-  const response = await getConnexion().post("/role-privilege/update",data).then((resp) => {
-    return resp.data;
-});
-return response;
-}
-
 export const userByID = async (user_id) => {
   const reponse = await getConnexion().get(`/user/${user_id}`).then((resp) => {
     return resp.data;
- }).catch(ex => { localStorage.removeItem('token');});
+ }).catch(ex => { tokenStore.clear();});
 return reponse;
-}
-//creation d'utilisateur
-export const createUser = async (data) => {
-   const response =  await getConnexion().post('/utilisateur/new',data).then((resp) => {
-     return resp.data;
-   }).catch((ex) => {localStorage.removeItem('token');});
-   return response;
-}
-export const getAllUsers = async () => {
-  const response = await getConnexion().get('/reservation/getAllUser').then((resp) => {
-    return resp.data;
-  })
-  return response;
 }
 export const change_password = async (data) => {
   const response = await getConnexion().post('/utilisateur/change-password',data).then((resp) => {
@@ -184,16 +78,7 @@ export const change_password = async (data) => {
   })
   return response;
 }
-export const updateUser = async (data) => {
-  const response = await getConnexion().post('/utilisateur/update',data).then((resp) => {
-    return resp.data;
-  })
-  return response;
-}
-export const deleteUser = async (data) => {
-  const response = await getConnexion().post('/utilisateur/delete',data).then((resp) => {
-    return resp.data;
-  })
-  return response;
-}
 
+// Partagés avec d'autres écrans (réservations, tableau de bord) : délèguent au module Administration
+export const getAllUsers = () => utilisateursApi.lister();
+export const getAllRoles = () => rolesApi.lister();

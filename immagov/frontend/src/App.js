@@ -9,9 +9,10 @@ import ListeImmatriculation from "./pages/ListeImmatriculation/ListeImmatriculat
 import DetailsImmatriculation from "./pages/DetailsImmatriculation/DetailsImmatriculation";
 import Footer from "./components/Footer/Footer";
 import { Toaster } from "react-hot-toast";
-import {UserContext,ComboContext} from "./services/Context/Contexts";
-import LoginProtected from "./components/ProtectedRoutes/LoginProtected";
-import Connected from "./components/ProtectedRoutes/Connected";
+import {UserContext,ComboContext} from "./core/context/contexts";
+import LoginProtected from "./core/auth/LoginProtected";
+import Connected from "./core/auth/Connected";
+import { routesDesModules } from "./app/modules";
 import {getCurrentUser, getUserRolePrivilegeByUserID} from './services/auth.service';
 import {getAllGenre, getAlltype,getAllmodel,getAllMarques} from "./utils/vehicule.util";
 import { getAllDirections, getministeres } from "./services/organisation.service";
@@ -20,8 +21,6 @@ import Reforme from "./pages/Reforme/Reforme";
 import ValidationMinistere from "./pages/ValidationMinistere/ValidationMinistere";
 
 import ListeReforme from "./pages/ListeReforme/ListeReforme";
-import ListeMinistere from "./pages/ListeMinistere/ListeMinistere";
-import ListeUtilisateurs from "./pages/ListeUtilisateurs/ListeUtilisateurs";
 import Mutation from "./pages/Mutation/Mutation";
 import ListeMutation from "./pages/ListeMutation/ListeMutation";
 import DetailsCarteGrise from "./pages/DetailsCarteGrise/DetailsCarteGrise";
@@ -29,14 +28,10 @@ import CartesGrises from "./pages/CartesGrises/CartesGrises";
 import NouvelleMutation from "./pages/NouvelleMutation/NouvelleMutation";
 import DetailsMutation from "./pages/DetailsMutation/DetailsMutation";
 import DetailsReforme from "./pages/DetailsReforme/DetailsReforme";
-import ModifierMinistere from "./pages/ModifierMinistere/ModiferMinistere";
 import ResoumissionImmatriculation from "./pages/ResoumissionImmatriculation/ResoumissionImmatriculation";
 import ResoumissionMutation from "./pages/ResoumissionMutation/ResoumissionMutation";
 import ResoumissionReforme from "./pages/ResoumissionReforme/ResoumissionReforme";
-import ListeRoles from "./pages/ListeRoles/ListeRoles";
 import { isEmpty } from "./utils/helper/functions";
-import ListeMarques from "./pages/ListeMarques/ListeMarques";
-import ModifierMarque from "./pages/ModifierMarque/ModifierMarque";
 import Statistiques from "./pages/Statistiques/Statistiques";
 import ListeReservation from "./pages/Reservation/ListeReservation";
 import ParcAutomobile from "./pages/ParcAutomobile/ParcAutomobile";
@@ -128,17 +123,11 @@ function App() {
               <Route path="mutation" element={<LoginProtected><Mutation/></LoginProtected> } />
               <Route path="nouvelle-mutation/:id" element={<LoginProtected><NouvelleMutation /></LoginProtected>} />
               <Route path="liste-mutation" element={<LoginProtected><ListeMutation /></LoginProtected>} />
-              <Route path="liste-ministere" element={<LoginProtected><ListeMinistere /></LoginProtected>} />
-              <Route path="modifier-ministere/:id" element={<LoginProtected><ModifierMinistere /></LoginProtected>} />
               <Route path="carte-grise/:id" element={<LoginProtected><DetailsCarteGrise /></LoginProtected>} />
               <Route path="cartes-grises" element={<LoginProtected><CartesGrises /></LoginProtected>} />
               <Route path="details-mutation/:id" element={<LoginProtected><DetailsMutation /></LoginProtected>} />
               <Route path="details-reforme/:id" element={<LoginProtected><DetailsReforme /></LoginProtected>} />
-              <Route path="liste-utilisateurs" element={<LoginProtected><ListeUtilisateurs /></LoginProtected>} />
-              <Route path="liste-roles" element={<LoginProtected><ListeRoles /></LoginProtected>} />
               <Route path="organisation/ministere/create/:id" element={<LoginProtected><ValidationMinistere /></LoginProtected>} />
-              <Route path="liste-marques" element={<LoginProtected><ListeMarques /></LoginProtected>} />
-              <Route path="modifier-marque/:id" element={<LoginProtected><ModifierMarque /></LoginProtected>} />
               {/* la resoumission */}
               <Route path="resoumission/:id" element={<LoginProtected><ResoumissionImmatriculation /></LoginProtected>} />
               <Route path="resoumission-mutation/:id" element={<LoginProtected><ResoumissionMutation /></LoginProtected>} />
@@ -146,6 +135,10 @@ function App() {
               <Route path="statistiques" element={<LoginProtected><Statistiques /></LoginProtected>} />
               <Route path="reservation" element={<LoginProtected><ListeReservation /></LoginProtected>} />
               <Route path="parc-automobile" element={<LoginProtected><ParcAutomobile /></LoginProtected>} />
+              {/* Routes déclarées par les modules (voir app/modules.js) */}
+              {routesDesModules.map((r) => (
+                <Route key={r.path} path={r.path} element={<LoginProtected>{r.element}</LoginProtected>} />
+              ))}
           </Routes>
           </ChargementPage>
           </ComboContext.Provider>

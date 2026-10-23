@@ -4,7 +4,8 @@ import { BiUserCircle, BiLogOutCircle, BiMenu } from "react-icons/bi";
 import { NavLink, Link } from "react-router-dom";
 import MobileNav from "../MobileNav/MobileNav";
 import { logout,getUserRole, getUserRolePrivilege } from "../../services/auth.service";
-import {UserContext} from "../../services/Context/Contexts";
+import {UserContext} from "../../core/context/contexts";
+import { MenuModules } from "./MenuModules";
 import { isEmpty } from "../../utils/helper/functions";
 import armoiries from "../../assets/armoiries.png";
 import Spinner from "../Spinner/Spinner";
@@ -195,40 +196,14 @@ const Navbar = (isLogging) => {
                     </div>
                   }
 
-                  {menusRole?.ministeres && 
-                    <NavLink  key={menusRole.ministeres} className={(navData) => navData.isActive ? "link-active" : "" } to="/liste-ministere">
-                      <li>Ministères</li>
-                    </NavLink>
-                  }
-                
-                  {(menusRole?.utilisateurs?.gestion_des_Utilisateurs || menusRole?.utilisateurs?.gestion_des_Rôles) &&
-                    <div className="link-utilisateur">
-                          <li>Utilisateurs</li>
-                          <div className="dropdown-menu dropdown-utilisateur">
-                            {menusRole.utilisateurs?.gestion_des_Utilisateurs && 
-                                <NavLink  key={menusRole.utilisateurs.gestion_des_Utilisateurs} className={(navData) => navData.isActive ? "link-active link-utilisateur" : "link-utilisateur" } to="/liste-utilisateurs">
-                                  <li>Gestion des utilisateurs</li> 
-                                </NavLink> 
-                            }
-                            {menusRole.utilisateurs?.gestion_des_Rôles &&
-                              <NavLink key={menusRole.utilisateurs.gestion_des_Rôles} className={(navData) => navData.isActive ? "link-active link-utilisateur" : "link-utilisateur" } to="/liste-roles">
-                                <li>Gestion des roles</li> 
-                              </NavLink> 
-                            }
-                          </div>
-                    </div>
-                  }
+                  {/* Liens des modules (Administration : ministères, utilisateurs, éditeur) */}
+                  <MenuModules menusRole={menusRole} />
                   {menusRole?.carte_Grise &&
                     <NavLink  key={menusRole.carte_Grise } className={(navData) => navData.isActive ? "link-active" : "" } to="/cartes-grises">
                       <li>Cartes grises</li>
                     </NavLink>
 
                   }
-                  {menusRole?.editeur &&
-                   <NavLink  key={menusRole.editeur } className={(navData) => navData.isActive ? "link-active" : "" } to="/liste-marques">
-                      <li>Editeur</li>
-                   </NavLink> 
-                   }
                    {menusRole?.statistique &&
                     <NavLink  key={menusRole.statistique } className={(navData) => navData.isActive ? "link-active" : "" } to="/statistiques">
                         <li>Statistiques</li>

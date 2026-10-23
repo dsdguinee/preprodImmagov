@@ -1,5 +1,2 @@
-import { createContext } from "react";
-
-export const UserContext = createContext(null);
-export const ImmaContext = createContext(null);
-export const ComboContext = createContext(null);
+// Ancien emplacement, conservé pour compatibilité : voir core/context/contexts
+export * from "../../core/context/contexts";

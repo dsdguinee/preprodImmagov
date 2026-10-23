@@ -48,61 +48,7 @@ export  function getVehiculeModels(vehiculeId){
    
     return  []
 }
-export async function getAllmarques(){
-    const reponse = getConnexion().get('vehicule/marques').then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function getmarqueByID(marque_id){
-    const reponse = getConnexion().get(`vehicule/marque/${marque_id}`).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function UpdateMarque(formdata){
-    const reponse = getConnexion().post('vehicule/marque/update',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function UpdateModele(formdata){
-    const reponse = getConnexion().post('vehicule/modele/update',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function AddModele(formdata){
-    const reponse = getConnexion().post('vehicule/modele/add',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function DeleteModele(formdata){
-    const reponse = getConnexion().post('vehicule/modele/delete',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
 
-export async function DeleteMarque(formdata){
-    const reponse = getConnexion().post('vehicule/marque/delete',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function AddMarque(formdata){
-    const reponse = getConnexion().post('vehicule/marque/add',formdata).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse;
-}
-export async function getModeleByMarqueID(marqueID){
-    const reponse = getConnexion().get(`vehicule/models/${marqueID}`).then((resp) => {
-        return resp.data
-    }).catch(ex => { return ex;});
-    return reponse; 
-}
 export function getvehiculeById(vehicule_id){
     const reponse = getConnexion().get(`vehicules/${vehicule_id}`).then(resp => {return resp ;}).catch(ex => { return ex;});
     return reponse;

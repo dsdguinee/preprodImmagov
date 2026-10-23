@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { DataGrid, GridToolbar, frFR } from "../../components/DataGrid";
 import { Link } from "react-router-dom";
 import { getministeres,deleteMinistere } from "../../services/organisation.service";
-import AjouterMinistereModal from "../../components/AjouterMinistereModal/AjouterMinistereModal";
+import AjouterMinistereModal from "../../modules/administration/organismes/AjouterMinistereModal";
 import Erreurs from "../../components/erreurs/Erreurs";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";

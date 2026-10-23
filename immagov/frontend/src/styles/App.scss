@@ -448,12 +448,12 @@ button {
 @import "../pages/ParcAutomobile/ParcAutomobile";
 @import "../pages/Immatriculation/Immatriculation";
 @import "../pages/ListeImmatriculation/ListeImmatriculation";
-@import "../pages/ListeMinistere/ListeMinistere";
+@import "../modules/administration/organismes/ListeMinistere";
 @import "../pages/Reservation/_ListeReservation";
 @import "../pages/Mutation/Mutation";
-@import "../pages/ModifierMinistere/ModifierMinistere";
-@import "../pages/ListeUtilisateurs/ListeUtilisateurs";
-@import "../pages/ListeRoles/ListeRoles";
+@import "../modules/administration/organismes/ModifierMinistere";
+@import "../modules/administration/utilisateurs/ListeUtilisateurs";
+@import "../modules/administration/roles/ListeRoles";
 @import "../pages/NouvelleReforme/NouvelleReforme";
 @import "../pages/NouvelleMutation/NouvelleMutation";
 @import "../pages/DetailsImmatriculation/DetailsImmatriculation";
@@ -471,7 +471,7 @@ button {
 @import "../components/Footer/Footer";
 @import "../components/Spinner/Spinner";
 @import "../components/LicensePlate/LicensePlate";
-@import "../components/AjouterUtilisateurModal/AjouterUtilisateurModal";
+@import "../modules/administration/utilisateurs/AjouterUtilisateurModal";
 @import "../components/RectoCarte/RectoCarte";
 @import "../components/VersoCarte/VersoCarte";
 @import url("../components/AjouterReservationModal/reservation.css")

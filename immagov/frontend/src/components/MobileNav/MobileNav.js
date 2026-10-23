@@ -2,6 +2,7 @@ import { useEffect,useState } from 'react';
 import { NavLink } from 'react-router-dom'
 import { logout,getUserRole, getUserRolePrivilege } from "../../services/auth.service";
 import { isEmpty } from "../../utils/helper/functions";
+import { MenuModulesMobile } from "../Navbar/MenuModules";
 const MobileNav = ({ isOpen,isLogging, setMenuOpen,menusRole,user }) => {
   
   useEffect(() => {
@@ -61,27 +62,7 @@ const MobileNav = ({ isOpen,isLogging, setMenuOpen,menusRole,user }) => {
                   <li onClick={() => setMenuOpen(false)}>Parc automobile</li>
                 </NavLink>
             }
-            {menusRole?.ministeres && 
-                <NavLink  key={menusRole.ministeres} className={(navData) => navData.isActive ? "link-active" : "" } to="/liste-ministere">
-                  <li onClick={() => setMenuOpen(false)}>Ministères</li>
-                </NavLink>
-             }
-            {(menusRole.utilisateurs?.gestion_des_Utilisateurs || menusRole.utilisateurs?.gestion_des_Rôles) &&
-               
-                  <div className="dropdown-menu dropdown-utilisateur">
-                    {menusRole.utilisateurs?.gestion_des_Utilisateurs && 
-                        <NavLink  key={menusRole.utilisateurs.gestion_des_Utilisateurs} className={(navData) => navData.isActive ? "link-active link-utilisateur" : "link-utilisateur" } to="/liste-utilisateurs">
-                          <li onClick={() => setMenuOpen(false)}>Utilisateurs</li> 
-                        </NavLink> 
-                    }
-                    {menusRole.utilisateurs?.gestion_des_Rôles &&
-                      <NavLink key={menusRole.utilisateurs.gestion_des_Rôles} className={(navData) => navData.isActive ? "link-active link-utilisateur" : "link-utilisateur" } to="/liste-roles">
-                        <li onClick={() => setMenuOpen(false)}>Rôles</li> 
-                      </NavLink> 
-                    }
-                      
-                </div>
-              }
+            <MenuModulesMobile menusRole={menusRole} fermer={() => setMenuOpen(false)} />
              {menusRole?.carte_Grise &&
               <NavLink className={(navData) => navData.isActive ? "link-active" : "" } to="/cartes-grises">
                 <li onClick={() => setMenuOpen(false)}>Cartes grises</li>

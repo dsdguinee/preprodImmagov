@@ -1,11 +1,11 @@
 import { getConnexion } from "../services/auth.service";
+import { organismesApi } from "../modules/administration/api";
 
-export async function getministeres(){
-   const result = await getConnexion().get('/organisation/ministeres').then((resp) => {
-       return resp.data.ministeres;
-   });
-   return result;
-}
+// Partagés avec l'immatriculation et les réservations : délèguent au module Administration
+export const getministeres = () => organismesApi.lister();
+export const createNewMinistere = (data) => organismesApi.ajouter(data);
+export const deleteMinistere = (data) => organismesApi.supprimer(data);
+
 export async function getdirectionsByMinistere(ministere_id){
     const result =  await getConnexion().get(`/organisation/getdirectionsByMinistere/${ministere_id}`).then((resp) => {
         return resp.data.directions;
@@ -20,22 +20,11 @@ export async function getMinistereById(ministere_id){
     });
     return result;
 }
-// Organisme complet (nom, type, catégorie) ; null s'il n'existe pas
-export async function getOrganismeById(ministere_id){
-    const resp = await getConnexion().get(`/organisation/ministere/${ministere_id}`);
-    return resp.data?.ministere || null;
-}
 export async function getDirectionByID(directionID){
     const result =  await getConnexion().get(`/organisation/direction/${directionID}`).then((resp) => {
         if( resp.data.status === 404 )
             return resp.data.message;
         else return resp.data.direction.nom;
-    });
-    return result;
-}
-export async function getAllDirectionByID(directionID){
-    const result =  await getConnexion().get(`/organisation/getdirectionsByMinistere/${directionID}`).then((resp) => {
-        return resp.data;
     });
     return result;
 }
@@ -60,43 +49,6 @@ export async function getMinistereByName(ministereName){
 
 export async function createNewMinistereandDirectionValided(data){
     const result = await getConnexion().post('/organisation/create/New/Ministere/directions/validedation',data).then((resp) => {
-        return resp.data;
-    });
-    return result;
-}
-export async function createNewMinistere(data){
-    const result = await getConnexion().post('/organisation/ministere/New',data).then((resp) => {
-        return resp.data;
-    })
-    return result;
-}
-export async function updateMinistere(data){
-    const result = await getConnexion().post('/organisation/ministere/update',data).then((resp) => {
-        return resp.data;
-    });
-    return result;
-}
-export async function addNewDirection(data){
-    const result = await getConnexion().post('/organisation/direction/New',data).then((resp) => {
-        return resp.data;
-    });
-    return result;
-}
-export async function updateDirection(data){
-    const result = await getConnexion().post('/organisation/direction/update',data).then((resp) => {
-        //console.log(resp.data)
-        return resp.data;
-    });
-    return result;
-}
-export async function deleteDirection(data){
-    const result = await getConnexion().post('/organisation/direction/delete',data).then((resp) => {
-        return resp.data;
-    });
-    return result;
-}
-export async function deleteMinistere(data){
-    const result =  await getConnexion().post('organisation/ministere/delete',data).then((resp) => {
         return resp.data;
     });
     return result;
