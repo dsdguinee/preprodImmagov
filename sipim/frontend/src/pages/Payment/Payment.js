@@ -14,18 +14,20 @@ import Api from "../../services/Api";
 const MONTANT_PLAQUE = 350000; // plaques EP et VA
 const TYPES_CLIENT = [
   { value: "Particulier", label: "Particulier", hint: "Personne physique" },
-  { value: "Société", label: "Société", hint: "NIF obligatoire" },
-  { value: "Gouvernement", label: "Gouvernement", hint: "Ministère, structure" },
+  { value: "Entreprise Publique", label: "Entreprise Publique", hint: "NIF obligatoire" },
+  { value: "Gouvernement", label: "Gouvernement", hint: "Ministère, Présidence" },
 ];
+// Type de client choisi dans une liste d'organismes (catégorie de la liste SIPIM)
+const CATEGORIE_ORGANISME = { Gouvernement: "Ministère", "Entreprise Publique": "Entreprise Publique" };
 const LIBELLE_NOM = {
   Particulier: ["Prénom et nom", "Prénom et nom de la personne"],
-  Société: ["Nom de la société", "Nom de la société"],
-  Gouvernement: ["Nom du ministère ou de la structure", "Nom du ministère ou de la structure"],
+  "Entreprise Publique": ["Entreprise publique", "Choisir l'entreprise publique"],
+  Gouvernement: ["Ministère / institution", "Choisir le ministère"],
 };
 
 // Champs attendus par /paiement/new (mêmes clés que l'ancien formulaire en étapes)
 const PAIEMENT_VIDE = {
-  typeClient: "", modeExp: "Personnel", fullName: "", tel: "", nif: "", chassis: "", modeImma: "1",
+  typeClient: "", modeExp: "Personnel", fullName: "", ministere_id: "", tel: "", nif: "", chassis: "", modeImma: "1",
   categorieCg: 0, typeCg: 0, typeVignette: 0, autorisation_id: 0, expressionCg: "",
   pf: "", nbrePlace: "", pv: "", cu: "", ptra: "",
   isIT: false, isEP: false, isVA: false, vignetteExo: false, dateExpCg: "", ancienNumMat: "", isNextStep: 1,
@@ -72,6 +74,18 @@ const Payment = () => {
   const [vehiculeErreur, setVehiculeErreur] = useState("");
   const [montantReforme, setMontantReforme] = useState("");
   const [autres, setAutres] = useState(false);
+  // Organismes proposés (gérés par l'administrateur) : ministères (Gouvernement) et entreprises publiques
+  const [organismes, setOrganismes] = useState([]);
+  const categorieOrganisme = CATEGORIE_ORGANISME[p.typeClient];
+  const ministeres = organismes.filter((m) => (m.categorie || "Ministère") === categorieOrganisme);
+
+  useEffect(() => {
+    if (!categorieOrganisme || organismes.length) return;
+    api.apiData("get", "/ministere/all").then((resp) => {
+      if (resp?.status === 200) setOrganismes(resp.ministeres || []);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categorieOrganisme]);
 
   const maj = (champs) => setP((prev) => ({ ...prev, ...champs }));
   const toucher = (champ) => setTouches((t) => ({ ...t, [champ]: true }));
@@ -151,7 +165,9 @@ const Payment = () => {
     if (p.chassis.trim().length >= 10) verifierChassis(v);
   };
   const choisirTypeClient = (v) => {
-    maj({ typeClient: v, nif: v === "Société" ? p.nif : "" });
+    // Gouvernement : le nom vient du ministère choisi ; on quitte Gouvernement : le ministère est retiré
+    maj({ typeClient: v, nif: v === "Entreprise Publique" ? p.nif : "",
+      ...(CATEGORIE_ORGANISME[v] || CATEGORIE_ORGANISME[p.typeClient] ? { ministere_id: "", fullName: "" } : {}) });
     if (v !== "Gouvernement" && plaque === "VA") setPlaque("");
   };
   const choisirUsage = (v) => {
@@ -226,9 +242,11 @@ const Payment = () => {
   // Validation
   const telValide = /^6\d{8}$/.test(p.tel);
   const erreursChamps = {
-    fullName: p.fullName.trim().length < 2 && "Saisissez au moins 2 caractères.",
+    fullName: categorieOrganisme ? !p.ministere_id && (gouvernement ? "Choisissez le ministère." : "Choisissez l'entreprise publique.")
+      : p.fullName.trim().length < 2 && "Saisissez au moins 2 caractères.",
     tel: !telValide && "9 chiffres commençant par 6 (ex. 620 00 00 00).",
-    nif: p.typeClient === "Société" && p.nif.trim().length < 3 && "Le NIF est obligatoire pour une société.",
+    nif: p.typeClient === "Entreprise Publique" && (p.nif.trim().length < 3 ? "Le NIF est obligatoire pour une entreprise publique."
+      : p.nif.trim().length > 16 && "Le NIF ne peut pas dépasser 16 caractères."),
     chassis: p.chassis.trim().length < 10 ? "Le numéro de châssis compte au moins 10 caractères."
       : surVehicule ? vehiculeErreur
       : chassisInfo?.reforme ? `Ce véhicule a été réformé (réf. ${chassisInfo.reference}) : aucun paiement n'est plus possible pour ce châssis.`
@@ -249,7 +267,9 @@ const Payment = () => {
     && (!docs.cg || isVA || !!trancheChoisie)
     && (!docs.vg || isVA || !!p.typeVignette)
     && (!docs.au || isVA || !!p.autorisation_id);
-  const formulaireOk = clientOk && (surVehicule ? !erreursChamps.chassis && operationOk : vehiculeOk && documentsOk);
+  // Immatriculation / réimmatriculation : la prise de plaque est obligatoire
+  const plaqueOk = sansImmat || !!plaque;
+  const formulaireOk = clientOk && (surVehicule ? !erreursChamps.chassis && operationOk : vehiculeOk && documentsOk && plaqueOk);
 
   // Montants
   const vignette = vignettes.find((v) => String(v.typevg_id) === String(p.typeVignette));
@@ -270,7 +290,7 @@ const Payment = () => {
   const total = lignes.reduce((s, l) => s + l.montant, 0);
   const categorie = surVehicule ? { nomCategorie: vehicule?.nomCategorie } : elementsData?.categories.find((c) => parseInt(c.categorie_id, 10) === cat);
 
-  const plaques = [{ value: "", label: "Sans plaque", hint: "Documents uniquement" }];
+  const plaques = [];
   if (aLePrivilege(privileges, "Paiement EP")) plaques.push({ value: "EP", label: "Plaque EP", hint: `${formatStringNumber(MONTANT_PLAQUE)} GNF` });
   if (aLePrivilege(privileges, "Paiement VA")) plaques.push({ value: "VA", label: "Plaque VA", hint: gouvernement ? `${formatStringNumber(MONTANT_PLAQUE)} GNF` : "Réservée au Gouvernement", disabled: !gouvernement });
 
@@ -296,7 +316,7 @@ const Payment = () => {
       const resp = surVehicule
         ? await api.apiData("post", "/paiement/operation-vehicule", objecttoFormData({
             document: operationVehicule, chassis: p.chassis.trim(), typeClient: p.typeClient,
-            fullName: p.fullName.trim(), tel: p.tel, nif: p.nif,
+            fullName: p.fullName.trim(), ministere_id: p.ministere_id, tel: p.tel, nif: p.nif,
             montant_operation: operationVehicule === "reforme" ? montantReformeSaisi : "",
           }))
         : await api.apiData("post", "/paiement/new", objecttoFormData(donnees));
@@ -330,15 +350,26 @@ const Payment = () => {
             <ChoiceTiles name="typeClient" label="Type de client" options={TYPES_CLIENT} value={p.typeClient} onChange={choisirTypeClient} />
             <div className="fk-grid">
               <Field label={libelleNom} htmlFor="fullName" full erreur={erreurVisible("fullName")}>
-                <input id="fullName" value={p.fullName} placeholder={placeholderNom} autoComplete="off"
-                  onChange={(e) => maj({ fullName: e.target.value.toUpperCase() })} onBlur={() => toucher("fullName")}
-                  aria-invalid={!!erreurVisible("fullName")} />
+                {categorieOrganisme ? (
+                  <select id="fullName" value={p.ministere_id} onBlur={() => toucher("fullName")} aria-invalid={!!erreurVisible("fullName")}
+                    onChange={(e) => {
+                      const ministere = ministeres.find((m) => String(m.ministere_id) === e.target.value);
+                      maj({ ministere_id: e.target.value, fullName: ministere ? ministere.nom : "" });
+                    }}>
+                    <option value="">{ministeres.length ? placeholderNom : "Chargement de la liste…"}</option>
+                    {ministeres.map((m) => <option key={m.ministere_id} value={m.ministere_id}>{m.nom}</option>)}
+                  </select>
+                ) : (
+                  <input id="fullName" value={p.fullName} placeholder={placeholderNom} autoComplete="off"
+                    onChange={(e) => maj({ fullName: e.target.value.toUpperCase() })} onBlur={() => toucher("fullName")}
+                    aria-invalid={!!erreurVisible("fullName")} />
+                )}
               </Field>
               <Field label="Téléphone" htmlFor="tel" erreur={erreurVisible("tel")}>
                 <PhoneInput id="tel" value={p.tel} onChange={(tel) => maj({ tel })} onBlur={() => toucher("tel")}
                   aria-invalid={!!erreurVisible("tel")} />
               </Field>
-              {p.typeClient === "Société" && (
+              {p.typeClient === "Entreprise Publique" && (
                 <Field label="NIF" htmlFor="nif" erreur={erreurVisible("nif")}>
                   <input id="nif" className="mono" value={p.nif} placeholder="Code NIF"
                     onChange={(e) => maj({ nif: e.target.value.toUpperCase() })} onBlur={() => toucher("nif")}
@@ -513,7 +544,8 @@ const Payment = () => {
               {!sansImmat && (
               <div className={`fk-toggle ${plaque ? "on" : ""}`}>
                 <div className="fk-toggle-top">
-                  <div className="fk-toggle-text"><b>Plaque</b><span>{isVA ? "La plaque VA se paie seule, sans autre document" : "Selon vos privilèges et le type de client"}</span></div>
+                  <div className="fk-toggle-text"><b>Plaque</b><span>{isVA ? "La plaque VA se paie seule, sans autre document" : plaques.length ? "Obligatoire pour une immatriculation ou une réimmatriculation"
+                    : "Obligatoire : il faut le privilège Paiement EP ou Paiement VA"}</span></div>
                   <span className={`fk-amount ${plaque ? "" : "off"}`}>{plaque ? formatStringNumber(MONTANT_PLAQUE) : "—"}</span>
                 </div>
                 <ChoiceTiles name="plaque" label="Type de plaque" options={plaques} value={plaque} onChange={setPlaque} />
@@ -536,14 +568,15 @@ const Payment = () => {
           total={total}
           note={surVehicule ? (vehicule ? undefined : "Les frais de service s'ajoutent selon la catégorie du véhicule.") : cat ? undefined : "Les frais de service s'ajoutent selon la catégorie."}
           aCompleter={surVehicule ? [
-            { ok: clientOk, label: `Client : type, nom, téléphone${p.typeClient === "Société" ? " et NIF" : ""}` },
+            { ok: clientOk, label: `Client : type, nom, téléphone${p.typeClient === "Entreprise Publique" ? " et NIF" : ""}` },
             { ok: !!vehicule, label: vehiculeErreur ? "Châssis non utilisé pour une immatriculation" : "Châssis d'un véhicule déjà immatriculé" },
             ...(operationVehicule === "reforme" ? [{ ok: operationOk, label: `Montant de la réforme (min. ${formatStringNumber(MONTANT_MIN_REFORME)} GNF)` }] : []),
           ] : [
-            { ok: clientOk, label: `Client : type, nom, téléphone${p.typeClient === "Société" ? " et NIF" : ""}` },
+            { ok: clientOk, label: `Client : type, nom, téléphone${p.typeClient === "Entreprise Publique" ? " et NIF" : ""}` },
             { ok: !erreursChamps.chassis, label: chassisInfo?.reforme ? "Véhicule réformé" : chassisInfo?.bloquant ? "Châssis déjà en attente d'autorisation" : "Numéro de châssis" },
             { ok: !!cat && capaciteOk, label: "Catégorie et capacité du véhicule" },
             { ok: documentsOk, label: docs.cg && !isVA && !trancheChoisie ? "Tranche de carte grise" : "Au moins un document à payer" },
+            ...(sansImmat ? [] : [{ ok: plaqueOk, label: "Plaque (obligatoire)" }]),
           ]}
           desactive={!formulaireOk}
           enCours={enCours}

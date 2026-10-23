@@ -15,6 +15,15 @@ const privilegeExiste = (privileName,privilegestable) => {
       return true;
    return false   
 }
+// Sous-menus d'administration, chacun visible selon son privilège
+export const ADMINISTRATION = [
+  { to: "users/list", label: "Utilisateurs", privilege: "Utilisateur" },
+  { to: "users/roles/list", label: "Rôles et Privilèges", privilege: "Role&Privilege" },
+  { to: "agencies/list", label: "Agences", privilege: "Agence" },
+  { to: "communes/list", label: "Communes", privilege: "Commune" },
+  { to: "ministeres/list", label: "Ministères & entreprises publiques", privilege: "Ministère" },
+];
+
 const Navbar = () => {
   const location = useLocation();
   const pathName = location.pathname;
@@ -65,27 +74,16 @@ const Navbar = () => {
                       </div>
                     </div> )
                   }
-                {(privilegeExiste('Utilisateur',privileges) || privilegeExiste('Role&Privilege',privileges)) &&(
-                 <> 
-                    <div className="link-with-dropdown">
-                     <li>Utilisateurs &amp; Rôles</li>
-                      <div className="dropdown-menu">
-                        {privilegeExiste('Utilisateur',privileges) && (<li><NavLink to={"users/list"} className={(navData) => navData.isActive ? "link-active" : ""}>Utilisateurs</NavLink></li>)}
-                        {privilegeExiste('Role&Privilege',privileges) && (<li><NavLink to={"users/roles/list"} className={(navData) => navData.isActive ? "link-active" : ""}>Rôles et Privilèges</NavLink></li>)}
-                      </div>  
-                    </div>
-                  </>  
-                  )
-                 }
-                {(privilegeExiste('Commune',privileges) || privilegeExiste('Agence',privileges)) &&(
+                {ADMINISTRATION.some((m) => privilegeExiste(m.privilege, privileges)) && (
                   <div className="link-with-dropdown">
-                  <li>Agences &amp; Communes</li>
+                    <li>Administration</li>
                     <div className="dropdown-menu">
-                      {privilegeExiste('Agence',privileges) && (<li><NavLink to={"agencies/list"} className={(navData) => navData.isActive ? "link-active" : "" }>Agences</NavLink></li>)}
-                      {privilegeExiste('Commune',privileges) && (<li><NavLink to={"communes/list"} className={(navData) => navData.isActive ? "link-active" : ""}>Communes</NavLink></li>)}
-                    </div>  
+                      {ADMINISTRATION.filter((m) => privilegeExiste(m.privilege, privileges)).map((m) => (
+                        <li key={m.to}><NavLink to={m.to} className={(navData) => navData.isActive ? "link-active" : ""}>{m.label}</NavLink></li>
+                      ))}
+                    </div>
                   </div>
-                  )}
+                )}
                   {(privilegeExiste('Statistique',privileges)) &&(
                     <li><NavLink to={"stats"} className={(navData) => navData.isActive ? "link-active" : "" }>Statistiques</NavLink></li>
                     )

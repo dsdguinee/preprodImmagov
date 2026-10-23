@@ -7,6 +7,7 @@ use App\Models\Agence;
 use App\Models\Autorisation;
 use App\Models\Categorie;
 use App\Models\Paiement;
+use App\Models\Ministere;
 use App\Models\PaiementAutorisation;
 use App\Models\PaiementCarteGrise;
 use App\Models\PaiementRejete;
@@ -49,9 +50,39 @@ class PaiementController extends BaseController
        }
        return $vignetteCode;
    }
+    // Type de client => catégorie de l'organisme à choisir dans la liste, et libellé des messages
+    const ORGANISMES_CLIENT = [
+        'Gouvernement' => ['Ministère', 'le ministère'],
+        'Entreprise Publique' => ['Entreprise Publique', "l'entreprise publique"],
+    ];
+
+    /**
+     * Client « Gouvernement » ou « Entreprise Publique » : l'organisme est choisi dans la liste (ministere_id)
+     * et son nom devient le nom du client. Une resoumission d'un ancien paiement (saisie libre) reste acceptée sans organisme.
+     * Renvoie le message d'erreur, ou null.
+     */
+    private function appliquerMinistere(array &$input, $resoumission = false){
+        $organisme = self::ORGANISMES_CLIENT[$input['typeClient'] ?? ''] ?? null;
+        if(!$organisme){
+            $input['ministere_id'] = null;
+            return null;
+        }
+        [$categorie, $libelle] = $organisme;
+        if(empty($input['ministere_id'])){
+            $input['ministere_id'] = null;
+            return $resoumission ? null : "Veuillez choisir $libelle.";
+        }
+        $nom = Ministere::where('ministere_id', $input['ministere_id'])->where('categorie', $categorie)->value('nom');
+        if(!$nom) return "Choisissez $libelle dans la liste.";
+        $input['fullName'] = $nom;
+        return null;
+    }
+
     public function newPaiement(Request $request){
        if($request->isMethod('post')){
            $input = $request->all();
+           if($erreur = $this->appliquerMinistere($input, !empty($input['paiement_id'])))
+               return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED, 'messages' => ['ministere_id' => [$erreur]]]);
            $messages = [
                "autorisation_id.required" => "Veuillez selectionner l'autorisation du Transport.",
                "typeClient.required" => "Veuillez selectionner le type de Client.",
@@ -75,6 +106,8 @@ class PaiementController extends BaseController
                "chassis.unique" => "ce  numéro de Chassis  existe déjà.",
                "dateExpCg.date_format" => "Mauvais format de la date.example:jj/mm/année",
                "dateExpCg.after" => "La date d'expiration ne peut pas être inférieur à celle d'aujourd'hui.",
+               "document.required" => "La prise de plaque est obligatoire pour une immatriculation ou une réimmatriculation.",
+               "document.in" => "La prise de plaque est obligatoire pour une immatriculation ou une réimmatriculation.",
 
            ];
 
@@ -130,6 +163,8 @@ class PaiementController extends BaseController
              "typeCg" => ["required",new TypeCartegrise($input['expressionCg'],$input['categorieCg'],$input['typeCg'],$input['pv'],$input['cu'],$input['pf'] ?? 0,$input['nbrePlace'] ?? 0)],
              "dateExpCg" => "nullable|date_format:Y-m-d|after:today",
              "typeVignette" => $reglesVignette,
+             // Immatriculation / reimmatriculation (carte grise) : la prise de plaque est obligatoire
+             "document" => !empty($input['typeCg']) ? ["required", "in:EP,VA,IT"] : ["nullable"],
            ],$messages);
            if ($validator->fails()) {
                return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED,'messages' => $validator->messages()]);
@@ -140,6 +175,7 @@ class PaiementController extends BaseController
                $paiement->typeClient = $input['typeClient'];
                $paiement->modeExp = $input['modeExp'];
                $paiement->fullName = $input['fullName'];
+               $paiement->ministere_id = $input['ministere_id'];
                $paiement->tel = $input['tel'];
                $paiement->nif = $input['nif'];
                $paiement->chassis = $input['chassis'];
@@ -824,8 +860,8 @@ class PaiementController extends BaseController
                                         where typeClient="Particulier" and year(created_at) =:year1 and user_id=:user_id1
                                         group by month(created_at),typeClient) a
                                         right outer join
-                                        (SELECT month(created_at) mois1,count(*) Société FROM paiements
-                                        where typeClient="Société" and year(created_at) =:year2 and user_id=:user_id2
+                                        (SELECT month(created_at) mois1,count(*) Entreprise FROM paiements
+                                        where typeClient="Entreprise Publique" and year(created_at) =:year2 and user_id=:user_id2
                                          and status = 1
                                         group by month(created_at),typeClient) b
                                         on a.mois = b.mois1', ['user_id1' => Auth::user()->id,
@@ -839,8 +875,8 @@ class PaiementController extends BaseController
                                         where typeClient="Particulier" and year(created_at) =:year1
                                         group by month(created_at),typeClient) a
                                         left join
-                                        (SELECT month(created_at) mois1,count(*) Société FROM paiements
-                                        where typeClient="Société" and year(created_at) =:year2
+                                        (SELECT month(created_at) mois1,count(*) Entreprise FROM paiements
+                                        where typeClient="Entreprise Publique" and year(created_at) =:year2
                                         and status = 1
                                         group by month(created_at),typeClient) b
                                         on a.mois = b.mois1', [
@@ -1070,6 +1106,8 @@ class PaiementController extends BaseController
      */
     public function operationVehicule(Request $request){
         $input = $request->all();
+        if ($erreur = $this->appliquerMinistere($input))
+            return response()->json(['success' => false, 'status' => Response::HTTP_EXPECTATION_FAILED, 'messages' => ['ministere_id' => [$erreur]]]);
         $messages = [
             "document.required" => "Veuillez choisir l'opération (mutation ou réforme).",
             "document.in" => "Opération inconnue.",
@@ -1085,7 +1123,7 @@ class PaiementController extends BaseController
         $validator = Validator::make($input, [
             "document" => ["required", "in:".implode(',', self::OPERATIONS_VEHICULE)],
             "chassis" => ["required", "string", "min:10", "max:25"],
-            "typeClient" => ["required", "in:Particulier,Société,Gouvernement"],
+            "typeClient" => ["required", "in:Particulier,Entreprise Publique,Gouvernement"],
             "fullName" => [new TypeClient($input['typeClient'] ?? '')],
             "tel" => ["required", "regex:/^6\\d{8}$/"],
             "nif" => [new CheckNif($input['typeClient'] ?? '')],
@@ -1114,6 +1152,7 @@ class PaiementController extends BaseController
             $paiement = new Paiement();
             $paiement->typeClient = $input['typeClient'];
             $paiement->fullName = $input['fullName'];
+            $paiement->ministere_id = $input['ministere_id'];
             $paiement->tel = $input['tel'];
             $paiement->nif = $input['nif'] ?? '';
             // Caracteristiques du vehicule reprises du paiement d'immatriculation

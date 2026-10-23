@@ -11,6 +11,7 @@ use \App\Http\Controllers\API\AdminDashboardController;
 use \App\Http\Controllers\API\AgentDashboardController;
 use \App\Http\Controllers\API\DirecteurDashboardController;
 use \App\Http\Controllers\API\StatistiqueController;
+use \App\Http\Controllers\API\MinistereController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -96,6 +97,13 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::post('/commune/new',[DecoupageController::class,"newCommune"]);
         Route::post('/commune/update',[DecoupageController::class,"updateCommune"]);
         Route::get('/commune/delete/{commune_id}',[DecoupageController::class,"deleteCommune"]);
+    });
+    // Ministeres du client Gouvernement : liste pour tous, gestion reservee au privilege « Ministère »
+    Route::prefix('ministere')->group(function () {
+        Route::get('/all',[MinistereController::class,"index"]);
+        Route::post('/new',[MinistereController::class,"store"]);
+        Route::post('/update',[MinistereController::class,"update"]);
+        Route::get('/delete/{ministere_id}',[MinistereController::class,"destroy"]);
     });
     Route::get('/admin/dashboard',[AdminDashboardController::class,"index"]);
     Route::get('/agent/dashboard',[AgentDashboardController::class,"index"]);

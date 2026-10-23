@@ -2,9 +2,9 @@
 
 namespace App\Rules\Paiement\News;
 
-use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ImplicitRule;
 
-class CheckNif implements Rule
+class CheckNif implements ImplicitRule
 {
     /**
      * Create a new rule instance.
@@ -27,20 +27,24 @@ class CheckNif implements Rule
      */
     public function passes($attribute, $value)
     {
-        if(strlen($value) <= 10){
-           if($this->typeClient === 'societe'){
-               if(strlen($value) === 0)
-                  $this->msg = "Veuillez fournir le code NIF de la société.";
-               else{
-                   $this->msg = "Le caractère minimum pour le code NIF est Dix(10).";
-               }
-               return false;
-           }else{
-               return true;
-           }
-        }else{
+        // Memes regles que le formulaire : NIF obligatoire pour une entreprise, 3 a 16 caracteres.
+        if($this->typeClient !== 'Entreprise Publique')
             return true;
+
+        $longueur = mb_strlen(trim((string) $value));
+        if($longueur === 0){
+            $this->msg = "Veuillez fournir le code NIF de l'entreprise.";
+            return false;
         }
+        if($longueur < 3){
+            $this->msg = "Le code NIF doit compter au moins 3 caractères.";
+            return false;
+        }
+        if($longueur > 16){
+            $this->msg = "Le code NIF ne peut pas dépasser 16 caractères.";
+            return false;
+        }
+        return true;
     }
 
     /**

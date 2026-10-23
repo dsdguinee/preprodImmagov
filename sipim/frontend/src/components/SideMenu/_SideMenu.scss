@@ -24,6 +24,16 @@
             cursor: pointer;
             margin-bottom: 0.7em;
         }
+        .side-menu-title {
+            margin-top: 1.4em;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: rgba($darker-grey, .7);
+            cursor: default;
+        }
+        .side-menu-sub { padding-left: 0.8em; }
     }
     &.open {
         transform: translateX(0);

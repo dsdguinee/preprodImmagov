@@ -22,7 +22,7 @@ const BarChartComponent = ({graph}) => {
         return {
           mois:mois.charAt(0).toUpperCase() + mois.slice(1),
           "Particulier":gr.Particulier?gr.Particulier:0,
-          "Société":gr.Société?gr.Société:0
+          "Entreprise":gr.Entreprise?gr.Entreprise:0
          
         }
       
@@ -51,7 +51,7 @@ const BarChartComponent = ({graph}) => {
         <Tooltip />
         {/* <Legend /> */}
         <Bar dataKey="Particulier" fill="#ff8d13" />
-        <Bar dataKey="Société" fill="#8d99ae" />
+        <Bar dataKey="Entreprise" name="Entreprise Publique" fill="#8d99ae" />
       </BarChart>
     </ResponsiveContainer>
   );

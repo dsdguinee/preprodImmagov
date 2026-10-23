@@ -379,8 +379,8 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
               <option value="Particulier" key={"particulier"}>
                 Particulier
               </option>
-               <option value="Société" key={"societe"}>
-                Société
+               <option value="Entreprise Publique" key={"entreprise"}>
+                Entreprise Publique
               </option>
               <option value="Gouvernement" key={"Gouvernement"}>
                 Gouvernement
@@ -416,8 +416,8 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
         {paiement.typeClient !== "" && (
           <div className="input-group">
             <label>
-              {paiement.typeClient === "Société" && 
-                "Nom de la société"}
+              {paiement.typeClient === "Entreprise Publique" && 
+                "Nom de l'entreprise"}
               {paiement.typeClient === "Particulier" &&  "Prénom et Nom"}
               {paiement.typeClient === "Gouvernement" &&  "Nom du ministère ou structure"}
               <input
@@ -425,7 +425,7 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
                 type="text"
                 name="fullName"
                 key="fullName"
-                placeholder={paiement.typeClient === "Société"? "Nom de la société"
+                placeholder={paiement.typeClient === "Entreprise Publique"? "Nom de l'entreprise"
                     : paiement.typeClient === 'Particulier' ? "Prénom et Nom de la Personne":paiement.typeClient === 'Gouvernement' && 'Nom du ministère ou structure'
                 }
                 id="fullName"
@@ -490,7 +490,7 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
                   </span>
                 )}
             </label>
-            {paiement.typeClient === "Société" && (
+            {paiement.typeClient === "Entreprise Publique" && (
               <label>
                 Code NIF
                 <input

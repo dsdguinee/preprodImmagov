@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ministere;
 use App\Models\TypeVg;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class Paie{
     public $utilise;
     public $dateUtilisation;
     public $numeroImmatriculation;
+    public $ministere;
 }
 class EcashController extends Controller
 {
@@ -55,13 +57,13 @@ class EcashController extends Controller
                return response()->json(['success' => false, 'status' => Response::HTTP_BAD_REQUEST,'messages' => 'Paramettres Incorrects.']);
 
           if($request->isMethod('get')) {
-              $paiements = DB::select("select typeClient,pf,nbrePlace,modeExp,chassis,modeImma,nomCategorie,
+              $paiements = DB::select("select typeClient,fullName,ministere_id,pf,nbrePlace,modeExp,chassis,modeImma,nomCategorie,
                                                 typeVignette,pv,cu,user_id,typeCg,status,reference,type_document,type_plaque,
                                                 utilise,date_utilisation,numero_immatriculation,
                                                 vignette_code,dateExp
                                                 from(SELECT distinct p.paiement_id,typeClient,modeExp,fullName,tel,nif,chassis,modeImma,c.categorie_id,nomCategorie,
                                                 typeVignette,pv,cu,p.pf,p.nbrePlace,p.user_id,typeCg,status,reference,type_document,type_plaque,
-                                                p.utilise,p.date_utilisation,p.numero_immatriculation,p.autorisation_id,p.created_at
+                                                p.utilise,p.date_utilisation,p.numero_immatriculation,p.autorisation_id,p.created_at,p.ministere_id
                                                 FROM paiements p,categories c
                                                 where p.categorie_id = c.categorie_id
 
@@ -117,7 +119,13 @@ class EcashController extends Controller
                       $paiement->pf = $paiements->pf;
                       $paiement->nbrePlace = $paiements->nbrePlace;
                       $paiement->typeClient = $paiements->typeClient;
-                      $paiement->typeOrganisme = $paiements->typeClient === 'Gouvernement' ? 'Publique' : 'Privé';
+                      // Gouvernement et Entreprise Publique : organismes de l'État (« Publique » dans immagov)
+                      $public = in_array($paiements->typeClient, ['Gouvernement', 'Entreprise Publique'], true);
+                      $paiement->typeOrganisme = $public ? 'Publique' : 'Privé';
+                      // Ministère ou entreprise publique du client (liste SIPIM, sinon nom saisi) : présélectionné dans immagov
+                      $paiement->ministere = $public
+                          ? (Ministere::where('ministere_id', $paiements->ministere_id)->value('nom') ?: $paiements->fullName)
+                          : null;
                       $paiement->dateExp = $paiements->dateExp;
                       if ($paiements->status == 1)
                           $paiement->status = 'Validé';

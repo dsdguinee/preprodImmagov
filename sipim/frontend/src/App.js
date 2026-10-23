@@ -26,6 +26,7 @@ import { Toaster } from 'react-hot-toast';
 import RolesList from "./pages/RolesList/RolesList";
 import Agencies from "./pages/Agencies/Agencies";
 import Communes from "./pages/Communes/Communes";
+import Ministeres from "./pages/Ministeres/Ministeres";
 import Stats from "./pages/Stats/Stats";
 import AutorisedPaymentList from "./pages/AutorisedPaymentList/AutorisedPaymentList";
 import HistoriqueList from "./pages/HistoriqueList/HistoriqueList";
@@ -132,6 +133,9 @@ function App() {
                 </Route>
                 <Route path="communes">
                   <Route path="list" element={<LoginProtected><Communes /></LoginProtected>} />
+                </Route>
+                <Route path="ministeres">
+                  <Route path="list" element={<LoginProtected><Ministeres /></LoginProtected>} />
                 </Route>
                 <Route path="myaccount">
                   <Route path="settings" element={<UserSettings />} />

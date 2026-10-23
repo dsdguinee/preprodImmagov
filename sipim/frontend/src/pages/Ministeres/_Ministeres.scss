@@ -1,0 +1,33 @@
+// Onglets Ministères / Entreprises publiques
+.organismes-onglets {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 1em;
+  border-radius: 10px;
+  background: $light-grey;
+  button {
+    border: 0;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba($darker-grey, .75);
+    cursor: pointer;
+    span {
+      margin-left: 6px;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: rgba($darker-grey, .08);
+      font-size: 0.75rem;
+    }
+    &:hover { color: $darker-grey; }
+    &.is-active {
+      background: $white;
+      color: $darker-grey;
+      box-shadow: 0 1px 2px rgba($darker-grey, .15);
+    }
+    &:focus-visible { outline: 2px solid $primary; outline-offset: 1px; }
+  }
+}

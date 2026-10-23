@@ -151,7 +151,7 @@ const Dashboard = () => {
             mois = graph.mois1;
           return {
             Particulier:graph.Particulier,
-            Société:graph.Société,
+            Entreprise:graph.Entreprise,
             mois:mois
           }
         }));
@@ -161,7 +161,7 @@ const Dashboard = () => {
         resp?.stats.clientByType.map(clientType => {
           if(clientType.typeClient == "Particulier")
             setTotalparticulier(clientType.NbretypeClient);
-          else if(clientType.typeClient === "societe" || clientType.typeClient === "Société") 
+          else if(clientType.typeClient === "societe" || clientType.typeClient === "Entreprise Publique") 
              setTotalsociete(clientType.NbretypeClient);
         });
       }
@@ -213,7 +213,7 @@ const Dashboard = () => {
             stat={{ title: "Particulier", filter_id: 2 }}
           />
           <StatsBox
-            title={"Paiements Entreprises"}
+            title={"Paiements Entreprises Publiques"}
             amount={totalsociete}
             link={"/payment/list"}
             position={3}

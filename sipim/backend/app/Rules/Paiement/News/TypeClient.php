@@ -34,7 +34,7 @@ class TypeClient implements Rule
 //             $this->msg = "Veuillez fournir le prenom et nom du client.";
 //        }else if($this->typeClient === "Societe") {
 //            if (strlen($value) != 0){
-//                $this->msg = "Veuillez fournir le nom de la société.";
+//                $this->msg = "Veuillez fournir le nom de l'entreprise.";
 //            }
 //         }
         if (strlen($value) === 0){
@@ -42,7 +42,7 @@ class TypeClient implements Rule
                 $this->msg = "Veuillez fournir le prenom et nom du client.";
                 return false;
             }else{
-                $this->msg = "Veuillez fournir le nom de la société.";return false;
+                $this->msg = "Veuillez fournir le nom de l'entreprise.";return false;
             }
           }else{
             return true;

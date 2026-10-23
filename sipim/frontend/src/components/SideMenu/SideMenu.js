@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { sideMenuState, useAtomState } from "../../store/atoms";
 import { UserContext } from "../../services/Context/Context";
+import { ADMINISTRATION } from "../Navbar/Navbar";
 import OutsideClickHandler from "../OutsideClickHandler/OutsideClickHandler";
 
 const SideMenu = () => {
@@ -87,49 +88,21 @@ const SideMenu = () => {
               </NavLink>
             </li>
           )}
-          {privilegeExiste("Utilisateur", privileges) && (
-            <li>
-              <NavLink
-                to={"users/list"}
-                className={(navData) => (navData.isActive ? "link-active" : "")}
-                onClick={() => setOpen(false)}
-              >
-                Utilisateurs
-              </NavLink>
-            </li>
-          )}
-          {privilegeExiste("Role&Privilege", privileges) && (
-            <li>
-              <NavLink
-                to={"users/roles/list"}
-                className={(navData) => (navData.isActive ? "link-active" : "")}
-                onClick={() => setOpen(false)}
-              >
-                Rôles et Privilèges
-              </NavLink>
-            </li>
-          )}
-          {privilegeExiste("Agence", privileges) && (
-            <li>
-              <NavLink
-                to={"agencies/list"}
-                className={(navData) => (navData.isActive ? "link-active" : "")}
-                onClick={() => setOpen(false)}
-              >
-                Agences
-              </NavLink>
-            </li>
-          )}
-          {privilegeExiste("Commune", privileges) && (
-            <li>
-              <NavLink
-                to={"communes/list"}
-                className={(navData) => (navData.isActive ? "link-active" : "")}
-                onClick={() => setOpen(false)}
-              >
-                Communes
-              </NavLink>
-            </li>
+          {ADMINISTRATION.some((m) => privilegeExiste(m.privilege, privileges)) && (
+            <>
+              <li className="side-menu-title">Administration</li>
+              {ADMINISTRATION.filter((m) => privilegeExiste(m.privilege, privileges)).map((m) => (
+                <li key={m.to} className="side-menu-sub">
+                  <NavLink
+                    to={m.to}
+                    className={(navData) => (navData.isActive ? "link-active" : "")}
+                    onClick={() => setOpen(false)}
+                  >
+                    {m.label}
+                  </NavLink>
+                </li>
+              ))}
+            </>
           )}
           {privilegeExiste("Statistique", privileges) && (
             <li>
