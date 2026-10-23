@@ -27,7 +27,9 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep, onTermine }) => {
       : ministeres?.find((m) => m.ministere_id == immatriculation.ministere)?.nom,
     direction: String(immatriculation.ministere) === "1000000"
       ? immatriculation.autredirection
-      : directions?.find((d) => d.direction_id == immatriculation.direction)?.nom,
+      : String(immatriculation.direction) === "1000000"
+        ? `${immatriculation.autredirection} (nouvelle direction, à valider)`
+        : directions?.find((d) => d.direction_id == immatriculation.direction)?.nom,
     pays: getPaysByID(immatriculation.idpays),
   }), [immatriculation, modeles, marques, genres, typeVehicules, ministeres, directions]);
 
@@ -45,7 +47,7 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep, onTermine }) => {
       ["Carrosserie", immatriculation.carrosserie], ["Couleur", immatriculation.couleur],
       ["Année", immatriculation.annee],
       ["1re mise en circulation", immatriculation.dateP ? moment(immatriculation.dateP).format("DD/MM/YYYY") : ""],
-      ["Ancien numéro", immatriculation.ancienNumMat, true],
+      ...(immatriculation.ancienNumMat ? [["Ancien numéro", immatriculation.ancienNumMat, true]] : []),
       ["Énergie", libelles[immatriculation.energie] || immatriculation.energie],
       ["Transmission", libelles[immatriculation.transmission] || immatriculation.transmission],
       ["Cylindres", immatriculation.cylindre], ["Puissance", immatriculation.pa ? immatriculation.pa + " CV" : ""],

@@ -56,6 +56,11 @@ const MobileNav = ({ isOpen,isLogging, setMenuOpen,menusRole,user }) => {
                 }
               </>
             }
+            {menusRole?.disponibilite &&
+                <NavLink className={(navData) => navData.isActive ? "link-active" : "" } to="/parc-automobile">
+                  <li onClick={() => setMenuOpen(false)}>Parc automobile</li>
+                </NavLink>
+            }
             {menusRole?.ministeres && 
                 <NavLink  key={menusRole.ministeres} className={(navData) => navData.isActive ? "link-active" : "" } to="/liste-ministere">
                   <li onClick={() => setMenuOpen(false)}>Ministères</li>

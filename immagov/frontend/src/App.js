@@ -39,12 +39,18 @@ import ListeMarques from "./pages/ListeMarques/ListeMarques";
 import ModifierMarque from "./pages/ModifierMarque/ModifierMarque";
 import Statistiques from "./pages/Statistiques/Statistiques";
 import ListeReservation from "./pages/Reservation/ListeReservation";
+import ParcAutomobile from "./pages/ParcAutomobile/ParcAutomobile";
 import ChargementPage from "./components/Spinner/ChargementPage";
 
 function App() { 
   const [user,setUser] = useState({});
   const [ministeres,setMinisteres] = useState([]);
   const [directions,setdirections] = useState([]);
+  // Organismes et directions relus après une création (validation d'une proposition par le Directeur)
+  const rechargerOrganisations = () => {
+    getministeres().then((resp) => setMinisteres(resp));
+    getAllDirections().then((resp) => setdirections(resp.directions));
+  };
   const [genres,setGenres] = useState([]);
   const [typeVehicules,setTypeVehicules] = useState([]);
   const [modeles,setModeles] = useState([]);
@@ -107,7 +113,7 @@ function App() {
     <UserContext.Provider value={{user,setUser,currentUserPrivilege}}> 
         <Navbar isLogging={isLogging}/>
           <Toaster position="top-right" reverseOrder={false} toastOptions={{ className: "toast", duration: 4000 }} />
-          <ComboContext.Provider value={{ministeres,typeVehicules,modeles,marques,genres,directions}}>
+          <ComboContext.Provider value={{ministeres,typeVehicules,modeles,marques,genres,directions,rechargerOrganisations}}>
           <ChargementPage>
           <Routes>
               <Route path='/' element={<Connected><Login/></Connected>}/>
@@ -139,6 +145,7 @@ function App() {
               <Route path="resoumission-reforme/:id" element={<LoginProtected><ResoumissionReforme /></LoginProtected>} />
               <Route path="statistiques" element={<LoginProtected><Statistiques /></LoginProtected>} />
               <Route path="reservation" element={<LoginProtected><ListeReservation /></LoginProtected>} />
+              <Route path="parc-automobile" element={<LoginProtected><ParcAutomobile /></LoginProtected>} />
           </Routes>
           </ChargementPage>
           </ComboContext.Provider>

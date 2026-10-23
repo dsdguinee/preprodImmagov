@@ -59,10 +59,11 @@ const download = (content, filename, type) => {
   URL.revokeObjectURL(url);
 };
 
-const exportFileName = (ext) => `${(document.title || "export").replace(/[\\/:*?"<>|]/g, "-")}.${ext}`;
+// Nom du fichier : nom fourni, sinon titre de la page
+const exportFileName = (ext, nom) => `${(nom || document.title || "export").replace(/[\\/:*?"<>|]/g, "-")}.${ext}`;
 
 // CSV separe par ";" avec BOM UTF-8 : s'ouvre directement avec les accents dans Excel (FR)
-export const exportCsv = (columns, rows, getRowId) => {
+export const exportCsv = (columns, rows, getRowId, nom) => {
   const escape = (v) => {
     const text = toText(v);
     return /[";\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -72,7 +73,7 @@ export const exportCsv = (columns, rows, getRowId) => {
     const id = getRowId(row, i);
     lines.push(columns.map((c) => escape(getFormattedValue(c, row, id))).join(";"));
   });
-  download("﻿" + lines.join("\r\n"), exportFileName("csv"), "text/csv;charset=utf-8");
+  download("﻿" + lines.join("\r\n"), exportFileName("csv", nom), "text/csv;charset=utf-8");
 };
 
 const escapeHtml = (v) =>
@@ -90,9 +91,9 @@ const htmlTable = (columns, rows, getRowId) => {
 };
 
 // Tableau HTML enregistre en .xls : Excel l'ouvre comme une feuille de calcul
-export const exportExcel = (columns, rows, getRowId) => {
+export const exportExcel = (columns, rows, getRowId, nom) => {
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"/></head><body>${htmlTable(columns, rows, getRowId)}</body></html>`;
-  download(html, exportFileName("xls"), "application/vnd.ms-excel;charset=utf-8");
+  download(html, exportFileName("xls", nom), "application/vnd.ms-excel;charset=utf-8");
 };
 
 export const printRows = (columns, rows, getRowId) => {

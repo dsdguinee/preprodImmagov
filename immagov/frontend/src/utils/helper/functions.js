@@ -72,3 +72,7 @@ export function checkValid(fields)
   }
   
   //fin validation step 2
+
+// Paiement SIPIM de réimmatriculation : seul cas où l'ancien numéro d'immatriculation est demandé
+export const estReimmatriculation = (paiement) =>
+  String(paiement?.modeImmat || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "reimmatriculation";

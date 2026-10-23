@@ -4,7 +4,8 @@ import Field from "../Immatriculation/ui/Field";
 import StepActions from "../Immatriculation/ui/StepActions";
 import Input from "../ui/Input/Input";
 import SearchSelect from "../ui/Select/SearchSelect";
-import { organismesSimilaires, organismeDeMemeNom } from "../../utils/organismes";
+import { organismesSimilaires, organismeDeMemeNom, organismesPourClient } from "../../utils/organismes";
+import PropositionDirection, { AUTRE_DIRECTION, erreurNouvelleDirection, optionsDirections } from "../Immatriculation/ui/PropositionDirection";
 
 const AUTRE_MINISTERE = "1000000";
 
@@ -31,9 +32,9 @@ const StepThree = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricu
   },[immatriculation]);
 
   // Organismes du type du dossier (Publique / Privé)
-  const ministeres = useMemo(() => (immatriculation.organisations.allMinisteres || []).filter(
-    (m) => m.typeorganisme?.toLowerCase() === immatriculation?.typeOrganisme?.toLowerCase()
-  ), [immatriculation.organisations.allMinisteres, immatriculation.typeOrganisme]);
+  // et de la catégorie du client du paiement (ministères ou entreprises publiques)
+  const ministeres = useMemo(() => organismesPourClient(immatriculation.organisations.allMinisteres, immatriculation.typeOrganisme, immatriculation.typeClient),
+    [immatriculation.organisations.allMinisteres, immatriculation.typeOrganisme, immatriculation.typeClient]);
 
   useEffect(()=>{
     setStepChk({...stepChk,step4:isstepValid});
@@ -47,6 +48,25 @@ const StepThree = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricu
   }
 
   const autre = String(immatriculation.ministere) === AUTRE_MINISTERE;
+  // Nouvelle direction proposée pour un organisme existant
+  const [erreurDirection, setErreurDirection] = useState("");
+  const organismeChoisi = immatriculation.ministere != 0 && !autre;
+  const propositionDirection = organismeChoisi && String(immatriculation.direction) === AUTRE_DIRECTION;
+  const handleDirection = (e) => {
+    setErreurDirection("");
+    setImmatriculation({...immatriculation, direction: e.target.value, autredirection: e.target.value === AUTRE_DIRECTION ? immatriculation.autredirection : ''});
+  }
+  const choisirDirection = (d) => {
+    setErreurDirection("");
+    setImmatriculation({...immatriculation, direction: String(d.direction_id), autredirection: ''});
+    setValue('direction', String(d.direction_id));
+  }
+  // Étape suivante : nom de la direction proposée obligatoire
+  const suivant = (donnees) => {
+    const erreur = organismeChoisi ? erreurNouvelleDirection(immatriculation) : "";
+    setErreurDirection(erreur);
+    if (!erreur) handleNextStep(donnees);
+  }
   // Nom identique à un organisme existant : le dossier lui sera rattaché automatiquement à l'enregistrement
   const memeNom = autre ? organismeDeMemeNom(immatriculation.autreministere, immatriculation.organisations.allMinisteres) : null;
   const similaires = autre && !memeNom ? organismesSimilaires(immatriculation.autreministere, ministeres) : [];
@@ -57,7 +77,7 @@ const StepThree = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricu
   }
 
   return (
-    <form onSubmit={handleSubmit(handleNextStep)}>
+    <form onSubmit={handleSubmit(suivant)}>
       <div className="immat-body">
         <div className="immat-section__head">
           <h2 className="immat-section__title" style={{ fontSize: 18 }}>Affectation du véhicule</h2>
@@ -80,14 +100,21 @@ const StepThree = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricu
             />
           </Field>
           <Field label="Direction ou service">
-            <SearchSelect id="direction" value={immatriculation.direction} disabled={autre || directions.length === 0}
-              placeholder={directions.length || autre ? "Sélectionner la direction ou le service" : "Aucune direction pour cet organisme"}
+            <SearchSelect id="direction" value={immatriculation.direction} disabled={!organismeChoisi}
+              placeholder={organismeChoisi ? (directions.length ? "Sélectionner la direction ou le service" : "Aucune direction : vous pouvez en proposer une") : "Choisissez d'abord l'organisme"}
               searchPlaceholder="Rechercher une direction…"
-              options={directions.map((d) => ({ value: String(d.direction_id), label: d.nom }))}
-              {...register('direction', { onChange: (e) => handleInput(e) })}
+              noResultText="Direction introuvable : choisissez « Direction introuvable ? La proposer »"
+              options={optionsDirections(directions, organismeChoisi)}
+              {...register('direction', { onChange: handleDirection })}
             />
           </Field>
         </div>
+
+        {propositionDirection && (
+          <PropositionDirection nom={immatriculation.autredirection} directions={directions} erreur={erreurDirection}
+            onChange={(nom) => { setErreurDirection(""); setImmatriculation({...immatriculation, autredirection: nom}); }}
+            onChoisir={choisirDirection} />
+        )}
 
         {autre && (
           <div className="immat-other immat-section">

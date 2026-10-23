@@ -87,6 +87,8 @@ class Organisation extends Controller
                 'direction' => ['nullable','string','min:2'],
                 'typeorganisme' => 'required|in:Publique,Privé',
                 'typeplaque' => 'nullable|in:VA,EP',
+                // Catégorie du client du paiement : Ministère (Gouvernement) ou Entreprise Publique
+                'categorie' => 'nullable|in:Ministère,Entreprise Publique',
             ],$messages);
             if ($validator->fails()) {
                 return response()->json(['success' => false, 'messages' => $validator->messages()]);
@@ -105,6 +107,9 @@ class Organisation extends Controller
                         $ministere->nom = ucfirst($nom);
                         $ministere->typeorganisme = $input['typeorganisme'];
                         $ministere->typeplaque = $input['typeplaque'] ?? null;
+                        // Tout organisme est public : ministère / institution, ou entreprise publique selon le client du paiement
+                        $ministere->typeorganisme = 'Publique';
+                        $ministere->categorie = $input['categorie'] ?? ($input['typeorganisme'] === 'Publique' ? 'Ministère' : 'Entreprise Publique');
                         $ministere->save();
                         $ministereCree = true;
                     }
@@ -127,6 +132,9 @@ class Organisation extends Controller
                     $direction = OrganismeService::directionPourNom($ministere->ministere_id, $nomDirection);
                     $directionCree = Direction::where('ministere_id', $ministere->ministere_id)->count() > $avant;
                     $immatriculation->direction_id = $direction->direction_id;
+                } else if ((int) $immatriculation->direction_id === OrganismeService::AUTRE_DIRECTION) {
+                    // Direction proposée retirée par le Directeur : le dossier reste sans direction
+                    $immatriculation->direction_id = 0;
                 }
                 $immatriculation->save();
                 return ['ministere' => $ministere->nom, 'ministereCree' => $ministereCree, 'directionCree' => $directionCree];
@@ -137,54 +145,75 @@ class Organisation extends Controller
           }
         }
     }
-    public function addNewMinistere(Request $request){
-          if($request->isMethod('post')) {
-            try {
-                $input = $request->all();
-//                return $input;
-                $messages = ['nom.required' => "Le Nom du ministère est Obligatoire.",
-                  'typeOrganisme.required' => "Le type d'organisme est obligatoire.",
-                  "typeOrganisme.not_in" => "Le type d'organisme est obligatoire. "
-                ];
-                $validator = Validator::make($input, [
-                    'nom' => ['required', new CheckMinistereExiste($input['typeOrganisme'])],
-                    "typeOrganisme" => "required|not_in:''"
-                ], $messages);
-                if ($validator->fails()) {
-                    return response()->json(['success' => false, 'messages' => $validator->messages()]);
-                } else {
-                    $ministere = new Ministere();
-                    $ministere->nom = ucfirst(trim($input['nom']));
-                    $ministere->typeorganisme = trim($input['typeOrganisme']);
-                    $ministere->save();
-                    return response()->json(['success' => true,]);
-                }
-            }catch (QueryException $ex){
-                return response()->json(['success' => false,'messages' => $ex->getMessage()]);
-            }}
+    // Catégorie de tout organisme : Ministère (ministères et institutions, client Gouvernement)
+    // ou Entreprise Publique (client Entreprise Publique). Il n'y a plus d'organisme privé.
+    const CATEGORIES = ['Ministère', 'Entreprise Publique'];
+
+    /**
+     * Données d'un organisme saisies par l'administrateur : nom normalisé et catégorie (Ministère ou Entreprise Publique).
+     * Tout organisme est « Publique ».
+     */
+    private function donneesOrganisme(Request $request)
+    {
+        return [
+            'nom' => OrganismeService::normaliser(mb_strtoupper((string) $request->input('nom'))),
+            'categorie' => $request->input('categorie'),
+            'typeOrganisme' => 'Publique',
+        ];
     }
+
+    private $messagesOrganisme = [
+        'nom.required' => "Le nom de l'organisme est obligatoire.",
+        'nom.min' => "Le nom de l'organisme compte au moins deux (2) caractères.",
+        'typeOrganisme.required' => "Le type d'organisme est obligatoire.",
+        'typeOrganisme.in' => "Le type d'organisme doit être Publique ou Privé.",
+        'categorie.required' => "Choisissez la catégorie : ministère / institution ou entreprise publique.",
+        'categorie.in' => "Catégorie inconnue : ministère / institution ou entreprise publique.",
+    ];
+
+    public function addNewMinistere(Request $request){
+        try {
+            $input = $this->donneesOrganisme($request);
+            $validator = Validator::make($input, [
+                'nom' => ['required', 'min:2', new CheckMinistereExiste($input['typeOrganisme'])],
+                'categorie' => 'required|in:'.implode(',', self::CATEGORIES),
+            ], $this->messagesOrganisme);
+            if ($validator->fails())
+                return response()->json(['success' => false, 'messages' => $validator->messages()]);
+            $ministere = new Ministere();
+            $ministere->nom = $input['nom'];
+            $ministere->typeorganisme = $input['typeOrganisme'];
+            $ministere->categorie = $input['categorie'];
+            $ministere->save();
+            return response()->json(['success' => true, 'ministere' => $ministere]);
+        } catch (QueryException $ex) {
+            return response()->json(['success' => false, 'messages' => ['erreur' => [$ex->getMessage()]]]);
+        }
+    }
+
     public function UpdateMinistere(Request $request){
-       if($request->isMethod('post')){
-           try {
-               $input = $request->all();
-               $messages = ['nom.required' => "Le Nom du ministère est Obligatoire."];
-               $ministere_id = $input['ministere_id'];
-               $validator = Validator::make($input, [
-                   'nom' => ['required', new MinistereExistUpdate($ministere_id)]
-               ], $messages);
-               if ($validator->fails()) {
-                   return response()->json(['success' => false, 'messages' => $validator->messages()]);
-               }else{
-                      $ministere =  Ministere::find($ministere_id);
-                      $ministere->nom = ucfirst(trim($input['nom']));
-                      $ministere->save();
-                      return response()->json(['success' => true,]);
-               }
-           }
-           catch (QueryException $ex){
-               return response()->json(['success' => false,'messages' => $ex->getMessage()]);
-           }
-       }
+        try {
+            $ministere_id = $request->input('ministere_id');
+            $ministere = Ministere::find($ministere_id);
+            if (!$ministere)
+                return response()->json(['success' => false, 'messages' => ['erreur' => ["Cet organisme n'existe pas."]]]);
+            $input = $this->donneesOrganisme($request);
+            // Anciens appels sans catégorie : seul le nom change
+            if (!$request->filled('categorie')) $input['categorie'] = $ministere->categorie ?: 'Entreprise Publique';
+            $validator = Validator::make($input, [
+                'nom' => ['required', 'min:2', new MinistereExistUpdate($ministere_id)],
+                'categorie' => 'required|in:'.implode(',', self::CATEGORIES),
+            ], $this->messagesOrganisme);
+            if ($validator->fails())
+                return response()->json(['success' => false, 'messages' => $validator->messages()]);
+            $ministere->nom = $input['nom'];
+            $ministere->typeorganisme = $input['typeOrganisme'];
+            $ministere->categorie = $input['categorie'];
+            $ministere->save();
+            return response()->json(['success' => true, 'ministere' => $ministere]);
+        } catch (QueryException $ex) {
+            return response()->json(['success' => false, 'messages' => ['erreur' => [$ex->getMessage()]]]);
+        }
     }
     public function addNewDirection(Request $request){
         if($request->isMethod('post')){

@@ -8,7 +8,7 @@ import Swal from "sweetalert2"
 import RejectionModal from '../../components/RejectionModal/RejectionModal';
 import {ComboContext,UserContext} from "../../services/Context/Contexts";
 import { getUserRole,userByID,getCurrentUser } from "../../services/auth.service";
-import { getMinistereById } from "../../services/organisation.service";
+import { getMinistereById, getDirectionByID } from "../../services/organisation.service";
 import { Helmet } from 'react-helmet-async'
 import 'moment/locale/fr';
 import toast from "react-hot-toast";
@@ -23,6 +23,8 @@ const DetailsImmatriculation = () => {
   const url = process.env.REACT_APP_URL + '/storage/';
   const { id } = useParams();
   const [immatriculationInfo, setImmatriculationInfo] = useState();
+  // Nom de la direction lu sur le serveur quand elle n'est pas dans la liste chargée au démarrage (direction créée depuis)
+  const [nomDirectionServeur, setNomDirectionServeur] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [role,setRole] = useState();
  
@@ -156,14 +158,18 @@ const DetailsImmatriculation = () => {
     setIsLoading(false);
    },[immatriculationInfo,ministeres]);
   useEffect(() => {
+    const id = immatriculationInfo?.direction_id;
+    setNomDirectionServeur("");
+    if (!id || String(id) === "1000000" || directions?.some((d) => d.direction_id == id)) return;
+    getDirectionByID(id).then((nom) => { if (nom && nom !== "Non Fournie.") setNomDirectionServeur(nom); }).catch(() => {});
+  }, [immatriculationInfo?.direction_id, directions]);
+
+  useEffect(() => {
     setIsLoading(true);
       getDetails(id);
       getUserRole().then(resp=> setRole(resp));
-      if(Array.isArray(currentUserPrivilege) && currentUserPrivilege.length > 0){
-        const result  = currentUserPrivilege.filter(p => p.privilege == "Validation");
-        if(Array.isArray(result) && result.length > 0)
-          setIsvalidedPrivilege(true)
-      }  
+ // Boutons Valider / Rejeter : uniquement avec le droit « Validation » (Directeur), jamais pour l'agent
+      setIsvalidedPrivilege(Array.isArray(currentUserPrivilege) && currentUserPrivilege.some(p => p.privilege == "Validation"));
     setIsLoading(false); 
   }, [currentUserPrivilege]);
   const openFile = (url) => {
@@ -188,11 +194,11 @@ const DetailsImmatriculation = () => {
           if(resp.success){
             setIsLoading(false); toast.success('Immatriculation Validée avec succès.');
               navigate('/liste-immatriculation');  
-          }else if(resp.success == false) 
-            if(resp.message){
-            setIsLoading(false);toast.error(resp.message);
+ }else {
+            // Refus du serveur (droit, statut du dossier, proposition en attente…) : son message est affiché
+            setIsLoading(false);
+            toast.error(resp?.messages?.erreur?.[0] || resp?.message || "Échec de la validation.");
           }
-           else  {setIsLoading(false);toast.error("Echec de l'immatriculation.");} 
         });
       }
     })
@@ -205,8 +211,11 @@ const DetailsImmatriculation = () => {
   const typeOperation = immatriculationInfo?.status === 3 ? 'Réforme' : immatriculationInfo?.status === 4 ? 'Mutation' : '';
   // Sigle sous le numéro : nom d'affectation court (ex. CBG, EDG), sinon rien
   const sigle = affectation && affectation.trim().length <= 8 && !/\s/.test(affectation.trim()) ? affectation.trim().toUpperCase() : '';
-  const direction = immatriculationInfo?.direction_id
-    ? directions?.find((d) => d.direction_id == immatriculationInfo.direction_id)?.nom
+  // Nouvelle direction proposée par l'agent pour un organisme existant : à approuver avant de valider le dossier
+  const directionProposee = String(immatriculationInfo?.direction_id) === '1000000' && String(immatriculationInfo?.minister_id) !== '1000000';
+  const direction = directionProposee ? immatriculationInfo?.autredirection
+    : immatriculationInfo?.direction_id
+    ? directions?.find((d) => d.direction_id == immatriculationInfo.direction_id)?.nom || nomDirectionServeur
     : immatriculationInfo?.autredirection;
   const nomPersonne = (u) => u?.prenom ? `${u.prenom.charAt(0).toUpperCase()}${u.prenom.slice(1)} ${u.nom?.toUpperCase() || ''}`.trim() : '';
   const ptac = (parseInt(vehiculeInfo?.cu) || 0) + (parseInt(vehiculeInfo?.pv) || 0);
@@ -235,6 +244,8 @@ const DetailsImmatriculation = () => {
   ];
   const peutValider = isvalidedPrivilege && immatriculationInfo?.status === 0;
   const peutResoumettre = immatriculationInfo?.status === 2 && isAgent;
+  // Dossier en attente : l'agent qui l'a créé peut encore le modifier, tant que le Directeur n'a pas décidé
+  const peutModifier = immatriculationInfo?.status === 0 && isAgent;
 
   return (
     <div className="fiche">
@@ -264,9 +275,14 @@ const DetailsImmatriculation = () => {
         <div className="fiche__actions">
           {peutValider && (
             <>
-              <button type="button" className="fiche-btn fiche-btn--danger" onClick={() => setIsModalOpen(true)} disabled={isautreministere}>Rejeter</button>
-              <button type="button" className="fiche-btn fiche-btn--primary" onClick={handValided} disabled={isautreministere}>Valider l'immatriculation</button>
+              <button type="button" className="fiche-btn fiche-btn--danger" onClick={() => setIsModalOpen(true)} disabled={isautreministere || directionProposee}>Rejeter</button>
+              <button type="button" className="fiche-btn fiche-btn--primary" onClick={handValided} disabled={isautreministere || directionProposee}>Valider l'immatriculation</button>
             </>
+          )}
+          {peutModifier && (
+            <Link to={`/resoumission/${immatriculationInfo?.immatriculation_id}`} className="fiche-btn fiche-btn--primary">
+              Modifier le dossier
+            </Link>
           )}
           {peutResoumettre && (
             <Link to={`/resoumission/${immatriculationInfo?.immatriculation_id}`} state={typeRejet === 'organisme' ? { etape: 3 } : undefined} className="fiche-btn fiche-btn--primary">
@@ -281,6 +297,15 @@ const DetailsImmatriculation = () => {
         <div className="fiche-alerte fiche-alerte--rejet" role="status">
           <AiOutlineCloseCircle aria-hidden="true" />
           <div><strong>{typeRejet === 'organisme' ? "Organisme proposé rejeté :" : "Motif du rejet :"}</strong> {raisonRejet}</div>
+        </div>
+      )}
+      {directionProposee && immatriculationInfo?.status === 0 && isvalidedPrivilege && (
+        <div className="fiche-alerte fiche-alerte--attention" role="status">
+          <GiSandsOfTime aria-hidden="true" />
+          <div>
+            L'agent a proposé une nouvelle direction (<strong>{direction}</strong>) pour {affectation || "cet organisme"} : approuvez-la ou rejetez-la avant de valider ce dossier.{' '}
+            <Link to={`/organisation/ministere/create/${immatriculationInfo.immatriculation_id}`}>Examiner la direction →</Link>
+          </div>
         </div>
       )}
       {isautreministere && immatriculationInfo?.status === 0 && isvalidedPrivilege && (
@@ -332,7 +357,7 @@ const DetailsImmatriculation = () => {
             <h2 className="fiche-carte__titre">Affectation</h2>
             <dl className="fiche-kv fiche-kv--colonne">
               <div><dt>Ministère ou organisme</dt><dd>{ou(affectation)}{isautreministere && <span className="fiche-badge fiche-badge--attente fiche-badge--petit">Nouvel organisme</span>}</dd></div>
-              <div><dt>Direction ou service</dt><dd>{ou(direction)}</dd></div>
+              <div><dt>Direction ou service</dt><dd>{ou(direction)}{directionProposee && <span className="fiche-badge fiche-badge--attente fiche-badge--petit">Nouvelle direction</span>}</dd></div>
               <div><dt>Type d'organisme</dt><dd>{ou(immatriculationInfo?.typeOrganisme)}</dd></div>
             </dl>
           </section>

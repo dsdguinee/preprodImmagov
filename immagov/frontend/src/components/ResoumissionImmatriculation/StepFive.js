@@ -28,7 +28,9 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep }) => {
       genre: (i.categories.AllGenres || []).find((g) => g.genre_id == i.genre)?.nom,
       type: (i.categories.AllTypes || []).find((t) => t.type_id == i.type)?.nom,
       ministere: String(i.ministere) === "1000000" ? i.autreministere : (i.organisations.allMinisteres || []).find((m) => m.ministere_id == i.ministere)?.nom,
-      direction: String(i.ministere) === "1000000" ? i.autredirection : directions.find((d) => d.direction_id == i.direction)?.nom,
+      direction: String(i.ministere) === "1000000" ? i.autredirection
+        : String(i.direction) === "1000000" ? `${i.autredirection} (nouvelle direction, à valider)`
+        : directions.find((d) => d.direction_id == i.direction)?.nom,
       pays: getPaysByID(i.idpays),
     };
   }, [immatriculation]);
@@ -46,7 +48,7 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep }) => {
       ["Carrosserie", immatriculation.carrosserie], ["Couleur", immatriculation.couleur],
       ["Année", immatriculation.annee],
       ["1re mise en circulation", immatriculation.dateP ? moment(immatriculation.dateP).format("DD/MM/YYYY") : ""],
-      ["Ancien numéro", immatriculation.ancienNumMat, true],
+      ...(immatriculation.ancienNumMat ? [["Ancien numéro", immatriculation.ancienNumMat, true]] : []),
       ["Énergie", libelles[immatriculation.energie] || immatriculation.energie],
       ["Transmission", libelles[immatriculation.transmission] || immatriculation.transmission],
       ["Cylindres", immatriculation.cylindre], ["Puissance", immatriculation.pa ? `${immatriculation.pa} CV` : ""],
@@ -74,12 +76,13 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep }) => {
     setIsLoading(true);
     const result = await resoumission(immatriculation);
     setIsLoading(false);
+    const modification = !!immatriculation.enAttente;
     if(result.success === false ){
-      toast.error("Échec de la resoumission.");
+      toast.error(modification ? "Échec de l'enregistrement des modifications." : "Échec de la resoumission.");
       setErreurs(result.messages);
     }else{
-      toast.success("Resoumission effectuée avec succès.");
-      navigate('/liste-immatriculation');
+      toast.success(modification ? "Modifications enregistrées : le dossier reste en attente de validation." : "Resoumission effectuée avec succès.");
+      navigate(modification ? `/details-immatriculation/${immatriculation.immatriculation_id}` : '/liste-immatriculation');
     }
   }
 
@@ -88,7 +91,7 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep }) => {
       {isLoading && <Spinner />}
       <div className="immat-body">
         <div className="immat-section__head">
-          <h2 className="immat-section__title" style={{ fontSize: 18 }}>Vérification avant resoumission</h2>
+          <h2 className="immat-section__title" style={{ fontSize: 18 }}>{immatriculation.enAttente ? "Vérification avant enregistrement" : "Vérification avant resoumission"}</h2>
           <p className="immat-section__desc">Contrôlez chaque bloc ; « Modifier » ramène à l'étape concernée.</p>
         </div>
 
@@ -122,7 +125,7 @@ const StepFive = ({ handlePrevStep, immatriculation, setStep }) => {
 
         {erreurs && Object.keys(erreurs).length > 0 && <Erreurs validation={erreurs} />}
       </div>
-      <StepActions onPrev={handlePrevStep} nextType="button" onNext={submitForm} nextDisabled={isLoading} nextLabel="Resoumettre le dossier" />
+      <StepActions onPrev={handlePrevStep} nextType="button" onNext={submitForm} nextDisabled={isLoading} nextLabel={immatriculation.enAttente ? "Enregistrer les modifications" : "Resoumettre le dossier"} />
     </div>
   );
 };

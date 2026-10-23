@@ -32,3 +32,10 @@ export const organismesSimilaires = (saisie, organismes) => {
     .slice(0, 3)
     .map((r) => r.org);
 };
+
+// Organismes proposés à l'affectation : ceux du type du paiement (Publique / Privé) et, pour un client public,
+// de sa catégorie (Gouvernement : ministères et institutions ; Entreprise Publique : entreprises publiques)
+export const organismesPourClient = (organismes, typeOrganisme, typeClient) => (organismes || []).filter((m) =>
+  m.typeorganisme?.toLowerCase() === typeOrganisme?.toLowerCase()
+  && (typeClient === "Entreprise Publique" ? m.categorie === "Entreprise Publique"
+    : typeClient === "Gouvernement" ? m.categorie === "Ministère" : true));

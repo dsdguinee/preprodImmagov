@@ -13,7 +13,7 @@ import Spinner from "../../components/Spinner/Spinner";
 import Field from "../../components/Immatriculation/ui/Field";
 import Input from "../../components/ui/Input/Input";
 import SegmentedControl from "../../components/Immatriculation/ui/SegmentedControl";
-import { organismesSimilaires } from "../../utils/organismes";
+import { organismeDeMemeNom, organismesSimilaires } from "../../utils/organismes";
 
 const TYPES_ORGANISME = ["Publique", "Privé"];
 const TYPES_PLAQUE = ["VA", "EP"];
@@ -25,15 +25,28 @@ const MOTIFS_REJET = [
   { value: "direction", label: "Direction incorrecte" },
   { value: "autre", label: "Autre motif" },
 ];
+const MOTIFS_REJET_DIRECTION = [
+  { value: "inexistant", label: "Direction inexistante dans cet organisme" },
+  { value: "doublon", label: "Doublon ou mauvaise orthographe" },
+  { value: "autre", label: "Autre motif" },
+];
+const AUTRE_DIRECTION = "1000000";
+// Directions chargées : tableau, ou objet { directions: [...] }
+const listeDirections = (d) => (Array.isArray(d) ? d : d?.directions || []);
 
 /**
- * Validation de l'organisme (ministère) et de la direction proposés par un agent pour une immatriculation.
- * Le Directeur peut corriger le nom avant de valider, ou rattacher le dossier à un organisme existant.
+ * Validation de l'organisme (ministère) et de la direction proposés par un agent pour une immatriculation,
+ * ou d'une nouvelle direction proposée pour un organisme existant (mode « direction »).
+ * Le Directeur peut corriger le nom avant de valider, ou rattacher le dossier à un organisme / une direction existant.
  */
 const ValidationMinistere = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { ministeres } = useContext(ComboContext);
+  const { ministeres, directions, rechargerOrganisations } = useContext(ComboContext);
+  // Nouvelle direction proposée pour un organisme existant
+  const [modeDirection, setModeDirection] = useState(false);
+  // Catégorie donnée à l'organisme créé (d'après le client du paiement)
+  const [categorie, setCategorie] = useState("");
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const [dossier, setDossier] = useState(null);
   const [agent, setAgent] = useState("");
@@ -48,12 +61,14 @@ const ValidationMinistere = () => {
   const getDetails = async (currentID) => {
     setIsLoading(true);
     const { immatriculation } = await getImmatriculationById(currentID);
-    if (!immatriculation?.autreministere) {
+    const directionSeule = !immatriculation?.autreministere && String(immatriculation?.direction_id) === AUTRE_DIRECTION;
+    if (!immatriculation?.autreministere && !directionSeule) {
       setIsLoading(false);
-      toast.error("Cette immatriculation est déjà affectée à un ministère.");
+      toast.error("Ce dossier n'a pas d'organisme ni de direction à approuver.");
       navigate("/liste-immatriculation");
       return;
     }
+    setModeDirection(directionSeule);
     setDossier(immatriculation);
     userByID(immatriculation.created_by).then((resp) => {
       if (resp?.success) setAgent(`${resp.user.prenom} ${resp.user.nom}`);
@@ -64,13 +79,18 @@ const ValidationMinistere = () => {
     // Une valeur hors Publique / Privé (ex. « undefined » des anciens dossiers) est traitée comme absente ;
     // si le paiement ne permet pas non plus de la retrouver, le Directeur la choisit dans le formulaire.
     let typeorganisme = TYPES_ORGANISME.includes(immatriculation.typeOrganisme) ? immatriculation.typeOrganisme : "";
-    if (!typeorganisme && immatriculation.paiementReference) {
+    // Paiement SIPIM : type d'organisme (anciens dossiers) et catégorie du client (ministère ou entreprise publique)
+    let categorieClient = "";
+    if (immatriculation.paiementReference) {
       const resp = await getPaiementSipim(immatriculation.paiementReference);
       if (resp?.status === 200 && resp.paiement) {
-        typeorganisme = resp.paiement.typeOrganisme || (resp.paiement.typeClient === "Gouvernement" ? "Publique" : "Privé");
+        if (!typeorganisme) typeorganisme = resp.paiement.typeOrganisme || (resp.paiement.typeClient === "Gouvernement" ? "Publique" : "Privé");
+        categorieClient = { Gouvernement: "Ministère", "Entreprise Publique": "Entreprise Publique" }[resp.paiement.typeClient] || "";
       }
     }
-    const proposition = { ministere: immatriculation.autreministere || "", direction: immatriculation.autredirection || "", typeorganisme };
+    setCategorie(categorieClient);
+    const nomOrganisme = directionSeule ? (ministeres || []).find((m) => m.ministere_id == immatriculation.minister_id)?.nom || "" : immatriculation.autreministere || "";
+    const proposition = { ministere: nomOrganisme, direction: immatriculation.autredirection || "", typeorganisme };
     setOrganisation(proposition);
     setTypeAChoisir(!typeorganisme);
     reset(proposition);
@@ -79,7 +99,14 @@ const ValidationMinistere = () => {
 
   useEffect(() => {
     getDetails(id);
-  }, [id]);
+  }, [id, ministeres]);
+
+  // Mode direction : directions existantes de l'organisme, identique ou proches du nom proposé
+  const directionsOrganisme = useMemo(() => listeDirections(directions).filter((d) => d.ministere_id == dossier?.minister_id),
+    [directions, dossier]);
+  const directionMemeNom = modeDirection ? organismeDeMemeNom(organisation.direction, directionsOrganisme) : null;
+  const directionsProches = modeDirection
+    ? (directionMemeNom ? [directionMemeNom] : organismesSimilaires(organisation.direction, directionsOrganisme)) : [];
 
   // Organismes existants du même type qui ressemblent au nom proposé
   const similaires = useMemo(() => organismesSimilaires(
@@ -96,10 +123,17 @@ const ValidationMinistere = () => {
     setIsLoading(true);
     const formData = new FormData();
     formData.append("immatriculation_id", id);
-    if (rattacherA) formData.append("ministere_id", rattacherA.ministere_id);
-    else formData.append("ministere", organisation.ministere);
-    formData.append("direction", organisation.direction || "");
+    if (modeDirection) {
+      // Organisme du dossier conservé ; direction existante réutilisée, ou créée sous ce nom
+      formData.append("ministere_id", dossier.minister_id);
+      formData.append("direction", rattacherA ? rattacherA.nom : organisation.direction || "");
+    } else {
+      if (rattacherA) formData.append("ministere_id", rattacherA.ministere_id);
+      else formData.append("ministere", organisation.ministere);
+      formData.append("direction", organisation.direction || "");
+    }
     formData.append("typeorganisme", organisation.typeorganisme);
+    if (categorie) formData.append("categorie", categorie);
     // Type de plaque du dossier (VA / EP), enregistré avec la proposition
     if (typePlaque) formData.append("typeplaque", typePlaque);
     const resp = await createNewMinistereandDirectionValided(formData);
@@ -108,9 +142,13 @@ const ValidationMinistere = () => {
       setErreurs(resp?.messages || { erreur: ["Échec de la validation."] });
       return;
     }
-    toast.success(resp.ministereCree
-      ? `Organisme « ${resp.ministere} » créé et affecté au dossier.`
-      : `Dossier rattaché à l'organisme existant « ${resp.ministere} ».`);
+    // Organisme ou direction créé : les listes de l'application sont relues pour l'afficher partout
+    rechargerOrganisations && rechargerOrganisations();
+    toast.success(modeDirection
+      ? (resp.directionCree ? "Direction créée et affectée au dossier." : "Dossier rattaché à la direction existante.")
+      : resp.ministereCree
+        ? `Organisme « ${resp.ministere} » créé et affecté au dossier.`
+        : `Dossier rattaché à l'organisme existant « ${resp.ministere} ».`);
     navigate(`/details-immatriculation/${id}`);
   };
 
@@ -123,10 +161,13 @@ const ValidationMinistere = () => {
     if (!resp?.success) {
       return setRejet({ ...rejet, erreur: resp?.messages ? Object.values(resp.messages).flat().join(" ") : "Échec du rejet." });
     }
-    toast.success("Proposition rejetée : le dossier est renvoyé à l'agent pour qu'il choisisse un autre organisme.");
+    toast.success(`Proposition rejetée : le dossier est renvoyé à l'agent pour qu'il choisisse ${modeDirection ? "une autre direction" : "un autre organisme"}.`);
     navigate(`/details-immatriculation/${id}`);
   };
 
+  const rattacherDirection = (d) => {
+    if (window.confirm(`Rattacher ce dossier à la direction existante « ${d.nom} » au lieu de créer « ${organisation.direction} » ?`)) envoyer(d);
+  };
   const rattacher = (org) => {
     if (window.confirm(`Rattacher ce dossier à l'organisme existant « ${org.nom} » au lieu de créer « ${organisation.ministere} » ?`)) envoyer(org);
   };
@@ -134,14 +175,14 @@ const ValidationMinistere = () => {
   return (
     <div className="immat-page">
       <Helmet>
-        <title>Validation de l'organisme proposé</title>
+        <title>{modeDirection ? "Validation de la direction proposée" : "Validation de l'organisme proposé"}</title>
       </Helmet>
       {isLoading && <Spinner />}
 
       <div className="immat-head">
         <div>
           <Link to={`/details-immatriculation/${id}`} className="immat-retour">← Retour au dossier</Link>
-          <h1 className="immat-head__title">Validation de l'organisme proposé</h1>
+          <h1 className="immat-head__title">{modeDirection ? "Validation de la direction proposée" : "Validation de l'organisme proposé"}</h1>
           <p className="immat-head__sub">
             {dossier ? <>Dossier <span className="immat-mono">{dossier.immatriculation_number}</span></> : "Dossier"}
             {agent ? ` · proposé par ${agent}` : ""}
@@ -155,7 +196,9 @@ const ValidationMinistere = () => {
           <div className="immat-section__head">
             <h2 className="immat-section__title" style={{ fontSize: 18 }}>Organisme et direction</h2>
             <p className="immat-section__desc">
-              Vérifiez la proposition de l'agent et corrigez l'orthographe si besoin. Si l'organisme existe déjà, rattachez-y le dossier plutôt que d'en créer un doublon.
+              {modeDirection
+                ? "L'agent propose une nouvelle direction pour un organisme existant. Corrigez l'orthographe si besoin ; si la direction existe déjà, rattachez-y le dossier."
+                : "Vérifiez la proposition de l'agent et corrigez l'orthographe si besoin. Si l'organisme existe déjà, rattachez-y le dossier plutôt que d'en créer un doublon."}
             </p>
           </div>
           <div className="immat-badges">
@@ -175,16 +218,31 @@ const ValidationMinistere = () => {
             <Field label="Nom du ministère ou de l'organisme" required error={
               errors.ministere?.type === "required" ? "Le nom du ministère est obligatoire."
               : errors.ministere?.type === "minLength" ? "Le nombre minimum de caractères est deux (2)." : ""}>
-              <Input value={organisation.ministere} invalid={!!errors.ministere} placeholder="Nom de l'organisme"
-                {...register("ministere", { onChange: handleInput, required: true, minLength: 2 })} />
+              {modeDirection
+                ? <Input value={organisation.ministere} readOnly aria-readonly="true" />
+                : <Input value={organisation.ministere} invalid={!!errors.ministere} placeholder="Nom de l'organisme"
+                    {...register("ministere", { onChange: handleInput, required: true, minLength: 2 })} />}
             </Field>
-            <Field label="Direction ou service" error={errors.direction?.type === "minLength" && "Le nombre minimum de caractères est deux (2)."}>
-              <Input value={organisation.direction} invalid={!!errors.direction} placeholder="Facultatif"
-                {...register("direction", { onChange: handleInput, minLength: 2 })} />
+            <Field label="Direction ou service" required={modeDirection} error={
+              errors.direction?.type === "required" ? "Le nom de la direction est obligatoire."
+              : errors.direction?.type === "minLength" && "Le nombre minimum de caractères est deux (2)."}>
+              <Input value={organisation.direction} invalid={!!errors.direction} placeholder={modeDirection ? "Nom de la direction" : "Facultatif"}
+                {...register("direction", { onChange: handleInput, required: modeDirection, minLength: 2 })} />
             </Field>
           </div>
 
-          {similaires.length > 0 && (
+          {directionsProches.length > 0 && (
+            <div className="immat-suggest" role="status">
+              <span className="immat-suggest__title">{directionMemeNom ? "Cette direction existe déjà dans l'organisme :" : "Directions existantes qui ressemblent à cette proposition :"}</span>
+              {directionsProches.map((d) => (
+                <button key={d.direction_id} type="button" className="immat-suggest__item" onClick={() => rattacherDirection(d)}>
+                  <span>{d.nom}</span>
+                  <span className="immat-suggest__action">Rattacher à cette direction</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {!modeDirection && similaires.length > 0 && (
             <div className="immat-suggest" role="status">
               <span className="immat-suggest__title">Organismes existants qui ressemblent à cette proposition :</span>
               {similaires.map((org) => (
@@ -220,10 +278,10 @@ const ValidationMinistere = () => {
             <div className="immat-section__head">
               <h2 id="titre-rejet" className="immat-section__title" style={{ fontSize: 18 }}>Rejeter la proposition</h2>
               <p className="immat-section__desc">
-                Le dossier passera en « Rejeté ». L'agent le verra dans ses dossiers à corriger et choisira un autre organisme ; le numéro d'immatriculation est conservé.
+                Le dossier passera en « Rejeté ». L'agent le verra dans ses dossiers à corriger et choisira {modeDirection ? "une autre direction" : "un autre organisme"} ; le numéro d'immatriculation est conservé.
               </p>
             </div>
-            <SegmentedControl label="Motif du rejet" required value={rejet.motif} options={MOTIFS_REJET}
+            <SegmentedControl label="Motif du rejet" required value={rejet.motif} options={modeDirection ? MOTIFS_REJET_DIRECTION : MOTIFS_REJET}
               onChange={(motif) => setRejet({ ...rejet, motif, erreur: "" })} />
             <Field label="Précision" required={rejet.motif === "autre"}>
               <Input value={rejet.commentaire} maxLength={150} invalid={rejet.motif === "autre" && !!rejet.erreur}

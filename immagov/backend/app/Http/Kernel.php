@@ -65,6 +65,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'jwt.verify' => \App\Http\Middleware\JwtMiddleware::class,        'Authenticated' => \App\Http\Middleware\DirecteurMiddleware::class,
         'administrateur' => \App\Http\Middleware\Administrateur\AdministrateurMiddleware::class,
+        // Valider / rejeter un dossier : privilège « Validation » (Directeur, Direction Générale GG)
+        'validation' => \App\Http\Middleware\Validation\ValidationMiddleware::class,
         'jwt.auth' => 'Tymon\JWTAuth\Middleware\GetUserFromToken',
         'jwt.refresh' => 'Tymon\JWTAuth\Middleware\RefreshToken',
     ];

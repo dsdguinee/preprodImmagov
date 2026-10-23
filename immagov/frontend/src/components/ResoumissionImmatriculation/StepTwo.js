@@ -2,7 +2,7 @@ import { useState ,useEffect,useMemo} from "react";
 import { useForm } from "react-hook-form";
 import { colors } from "../../utils/colors";
 import { getPays ,isEmpty, isDateValid,checkValid} from '../../utils/helper/functions';
-import { carosseries } from "../../services/utils/carosserie";
+import { carrosseriesDuType } from "../../services/utils/carosserie";
 import Field from "../Immatriculation/ui/Field";
 import FormSection from "../Immatriculation/ui/FormSection";
 import SegmentedControl from "../Immatriculation/ui/SegmentedControl";
@@ -137,7 +137,7 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                         <select name="carrosserie" id="carrosserie" value={immatriculation.carrosserie}
                             {...register('carrosserie', { onChange: (e) => handleInput(e), validate: (value) => value != 0 })}>
                             <option value={0}>Sélectionner la carrosserie</option>
-                            {carosseries.map((carosserie) => <option key={carosserie.id} value={carosserie.id}>{carosserie.nom}</option>)}
+                            {carrosseriesDuType(types.find((t) => t.type_id == immatriculation.type), immatriculation.carrosserie).map((carosserie) => <option key={carosserie.id} value={carosserie.id}>{carosserie.nom}</option>)}
                         </select>
                     </Field>
                     <Field label="Couleur" required error={errors.couleur && "Veuillez choisir la couleur."}>
@@ -158,11 +158,13 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                         <Input invalid={!!errors.dateP} type="date" name='dateP' value={immatriculation.dateP}
                             {...register('dateP', { onChange: (e) => handleInput(e), validate: (value) => isDateValid(value) })} />
                     </Field>
+{immatriculation.avecAncienNumero && (
                     <Field label="Ancien numéro d'immatriculation" error={errors.ancienNumMat?.message}>
                         <Input mono invalid={!!errors.ancienNumMat} type="text" value={immatriculation.ancienNumMat || ''} name="ancienNumMat" placeholder="ex : RC-1234-A"
                             {...register('ancienNumMat', { onChange: (e) => handleInput(e),
                                 pattern:{ value: /[A-Z]{2,3}-[0-9]{4}-[A-Z]{1,2}/, message:"Respectez le format d'immatriculation (ex : RC-1234-A)." } })} />
                     </Field>
+                    )}
                 </FormSection>
 
                 <div className="immat-divider" />

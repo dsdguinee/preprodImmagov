@@ -27,13 +27,15 @@ class CheckImmatriculationStatus implements Rule
     public function passes($attribute, $value){
         $immatriculation = Immatriculation::where('immatriculation_id',trim($value))->get()->first();
         if($immatriculation) {
-            if ($immatriculation->status == 2)
+            // Dossier rejeté (correction) ou en attente (modification par l'agent avant la décision du Directeur)
+            if (in_array((int) $immatriculation->status, [0, 2], true))
                 return true;
+            return false;
         }
         else return true;
     }
     public function message()
     {
-        return 'Ce Vehicule n\'a pas status de rejet.';
+        return "Ce dossier ne peut plus être modifié : il a déjà été validé.";
     }
 }

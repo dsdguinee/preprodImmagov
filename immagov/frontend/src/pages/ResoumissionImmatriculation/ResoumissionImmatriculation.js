@@ -6,7 +6,7 @@ import StepFour from "../../components/ResoumissionImmatriculation/StepFour";
 import StepFive from "../../components/ResoumissionImmatriculation/StepFive";
 import { getAllGenre, getAlltype, getAllMarques, getAllmodel } from "../../utils/vehicule.util";
 import { getministeres, getAllDirections } from "../../services/organisation.service";
-import { getImmatriculationById, ImmatriculationRejeter } from "../../services/immatriculation.service";
+import { getImmatriculationById, getPaiementSipim, ImmatriculationRejeter } from "../../services/immatriculation.service";
 import Spinner from "../../components/Spinner/Spinner";
 import { useParams, useLocation, Link } from "react-router-dom";
 import moment from "moment";
@@ -52,6 +52,7 @@ const ResoumissionImmatriculation = () => {
     dateP: "",
     carosserie: "",
     ancienNumMat: "",
+    avecAncienNumero: false,
     cylindre: 0,
     kilometrage: 0,
     couleur: "",
@@ -93,6 +94,12 @@ const ResoumissionImmatriculation = () => {
     const {status,immatriculation,vehicule,ministere} = await getImmatriculationById(id);
     //console.log(immatriculation)
     if(status) {     
+        // Type de client du paiement SIPIM (Gouvernement / Entreprise Publique) : filtre la liste des organismes
+        if (immatriculation.paiementReference)
+          getPaiementSipim(immatriculation.paiementReference).then((resp) => {
+            const typeClient = resp?.paiement?.typeClient;
+            if (typeClient) setImmatriculation((prev) => ({ ...prev, typeClient }));
+          });
         setImmatriculation({
           ...immatriculation,
           vehiculeID:vehicule.vehicule_id,
@@ -114,6 +121,8 @@ const ResoumissionImmatriculation = () => {
           nbPlaceDebout:vehicule.placeNumberDebout,
           dateP: vehicule.releaseYear,
           ancienNumMat: immatriculation.ancienImmatriculation,
+          // Dossier de réimmatriculation (ancien numéro déjà saisi) : seul cas où le champ reste proposé
+          avecAncienNumero: !!String(immatriculation.ancienImmatriculation || '').trim(),
           cylindre: vehicule.cylinderNumber,
           kilometrage: vehicule.kilometrage,
           couleur: vehicule.colorVehicule,
@@ -128,6 +137,9 @@ const ResoumissionImmatriculation = () => {
           cu:vehicule.cu,
           pa:vehicule.pa,
           typeOrganisme:ministere?.typeorganisme || immatriculation.typeOrganisme || '',
+          typeClient:'',
+          // Dossier en attente (0) : modification avant la décision du Directeur ; rejeté (2) : correction et resoumission
+          enAttente: Number(immatriculation.status) === 0,
           image4: vehicule.pieceJointe,
           brands: {
             allMarques: marques,
@@ -177,23 +189,29 @@ const ResoumissionImmatriculation = () => {
     ? immatriculation.autreministere
     : (immatriculation.organisations.allMinisteres || []).find((m) => m.ministere_id == immatriculation.ministere)?.nom;
   const etapeProps = { handleNextStep, handlePrevStep, immatriculation, setImmatriculation, stepChk, setStepChk };
+  const modification = !!immatriculation.enAttente;
 
   return (
     <div className="immat-page">
       <Helmet>
-        <title>Resoumission d'immatriculation</title>
+        <title>{modification ? "Modification d'immatriculation" : "Resoumission d'immatriculation"}</title>
       </Helmet>
       {isLoading && <Spinner />}
 
       <div className="immat-head">
         <div>
           <Link to={`/details-immatriculation/${id}`} className="immat-retour">← Retour au dossier</Link>
-          <h1 className="immat-head__title">Resoumission {immatriculation.immatriculation_number ? <span className="immat-mono">{immatriculation.immatriculation_number}</span> : "d'immatriculation"}</h1>
+          <h1 className="immat-head__title">{modification ? "Modifier le dossier" : "Resoumission"} {immatriculation.immatriculation_number ? <span className="immat-mono">{immatriculation.immatriculation_number}</span> : "d'immatriculation"}</h1>
           <p className="immat-head__sub">Étape {step} sur {ETAPES.length} · {ETAPES[step - 1].label} · le numéro d'immatriculation est conservé</p>
         </div>
       </div>
 
-      {motif && (
+      {modification && (
+        <div className="immat-alert immat-alert--warning" role="status">
+          <span>Dossier en attente de validation : vous pouvez encore le modifier tant que le Directeur ne l'a ni validé ni rejeté.</span>
+        </div>
+      )}
+      {motif && !modification && (
         <div className="immat-alert immat-alert--error" role="status">
           <span><strong>{rejet?.typeRejet === "organisme" ? "Organisme proposé rejeté :" : "Motif du rejet :"}</strong> {motif}</span>
         </div>

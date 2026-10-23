@@ -64,9 +64,10 @@ export async function validedImmatriculation(immID)
 {
   var formData = new FormData();
   formData.append('id',immID);
+   // Refus (403 : droit « Validation » requis) renvoyé comme une erreur de validation, avec son message
    const reponse = await getConnexion().post("immatriculation/validerImmatriculation",formData).then((resp) => {
      return resp.data;
-    });
+    }).catch(erreurServeur);
   // console.log(reponse);
    return reponse;
 }

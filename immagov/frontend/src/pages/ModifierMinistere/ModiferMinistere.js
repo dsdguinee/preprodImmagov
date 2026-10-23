@@ -8,13 +8,16 @@ import { Helmet } from "react-helmet-async";
 
 import AjouterDirectionModal from "../../components/AjouterDirectionModal/AjouterDirectionModal";
 import ModifierDirectionModal from "../../components/ModifierDirectionModal/ModifierDirectionModal";
-import { getMinistereById, deleteDirection } from "../../services/organisation.service";
+import { getOrganismeById, deleteDirection } from "../../services/organisation.service";
+import { CATEGORIES_ORGANISME } from "../../components/AjouterMinistereModal/AjouterMinistereModal";
 import { updateMinistere, getAllDirectionByID } from "../../services/organisation.service";
 import Erreurs from "../../components/erreurs/Erreurs";
 import Spinner from "../../components/Spinner/Spinner";
 
 const ModifierMinistere = () => {
   const [ministere, setMinistere] = useState("");
+  // Catégorie : Ministère / institution ou Entreprise Publique
+  const [categorie, setCategorie] = useState("Entreprise Publique");
   const [directions, setDirections] = useState([]);
   const [selectedDirection, setSelectedDirection] = useState({});
   const [selecteDirectionID, setselectedDirectionID] = useState();
@@ -58,8 +61,9 @@ const ModifierMinistere = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    getMinistereById(id).then((resp) => {
-      setMinistere(resp);
+    getOrganismeById(id).then((org) => {
+      setMinistere(org?.nom || "");
+      setCategorie(org?.categorie || "Entreprise Publique");
       setIsLoading(false);
     });
     allDirectionByMinistereID(id);
@@ -72,6 +76,8 @@ const ModifierMinistere = () => {
     var formData = new FormData();
     formData.append("ministere_id", id);
     formData.append("nom", ministere);
+    formData.append("categorie", categorie);
+    formData.append("typeOrganisme", "Publique");
     const { success, messages } = await updateMinistere(formData);
     if (success) {
       toast.success("Mise à jour effectuée avec succès");
@@ -162,17 +168,23 @@ const ModifierMinistere = () => {
         ministere_id={id}
       />
       <div className="ministeres">
-        <h2>Modifier Ministere</h2>
+        <h2>Modifier l'organisme</h2>
         <div className="ministere">
           <form onSubmit={handleEditMinistere}>
             <label>
-              Nom du ministere
+              Catégorie
+              <select value={categorie} onChange={(e) => { setCategorie(e.target.value); setErreurs([]); }}>
+                {CATEGORIES_ORGANISME.map((c) => <option key={c.label} value={c.value}>{c.label}</option>)}
+              </select>
+            </label>
+            <label>
+              Nom
               <input
                 type="text"
-                name=""
+                name="nom"
                 value={ministere}
                 onChange={(e) => {
-                  setMinistere(e.target.value);
+                  setMinistere(e.target.value.toUpperCase());
                   setErreurs([]);
                 }}
               />

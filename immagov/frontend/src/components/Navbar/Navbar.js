@@ -41,7 +41,8 @@ const Navbar = (isLogging) => {
     },
     editeur:'',
     statistique:'',
-    reservation:''
+    reservation:'',
+    disponibilite:''
   });
   const {user} = useContext(UserContext);
 
@@ -76,6 +77,7 @@ const Navbar = (isLogging) => {
           editeur:menus.editeur,
           statistique:menus.statistique,
           reservation:menus.reservation,
+          disponibilite:menus.disponibilite,
         });
       }
       setIsLoading(false);
@@ -231,6 +233,11 @@ const Navbar = (isLogging) => {
                     <NavLink  key={menusRole.statistique } className={(navData) => navData.isActive ? "link-active" : "" } to="/statistiques">
                         <li>Statistiques</li>
                     </NavLink> 
+                   }
+                  {menusRole?.disponibilite &&
+                    <NavLink key={menusRole.disponibilite} className={(navData) => navData.isActive ? "link-active" : "" } to="/parc-automobile">
+                      <li>Parc automobile</li>
+                    </NavLink>
                    }
                   {menusRole?.reservation &&
                     <NavLink  key={menusRole.reservation } className={(navData) => navData.isActive ? "link-active" : "" } to="/reservation">

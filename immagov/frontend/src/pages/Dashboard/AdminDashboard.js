@@ -6,6 +6,7 @@ import { AiOutlineCheckCircle, AiOutlineTeam } from "react-icons/ai";
 import { GiSandsOfTime } from "react-icons/gi";
 import { BiBuildings, BiCar } from "react-icons/bi";
 import { dashboardAdmin } from "../../services/immatriculation.service";
+import ParcDisponibiliteCard from "../../components/Disponibilite/ParcDisponibiliteCard";
 import Spinner from "../../components/Spinner/Spinner";
 
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
@@ -152,6 +153,8 @@ const AdminDashboard = ({ user }) => {
         </div>
 
         <aside className="agent-dash__side">
+          {/* Disponibilité du parc (consultation) */}
+          <ParcDisponibiliteCard />
           {/* Comptes à surveiller */}
           <section className={`agent-card agent-side-card${aSurveiller.length ? " dir-side--attention" : ""}`}>
             <div className="agent-side-card__head">

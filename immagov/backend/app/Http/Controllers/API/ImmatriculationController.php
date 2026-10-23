@@ -351,9 +351,8 @@ class ImmatriculationController extends BaseController
 
                             $vehicule->save();
                             $immatriculation->save();
-                            $rejet = Rejet::find($input['immatriculation_id']);
-                            if($rejet)
-                              $rejet->delete();
+                            // L'historique des rejets du dossier est conservé (dossiers resoumis du tableau de bord du Directeur).
+                            // L'ancien code supprimait le rejet dont l'identifiant valait celui du dossier, c'est-à-dire un rejet sans rapport.
 
                         } catch (QueryException $ex) {
                             return response()->json(['success' => false, 'messages' => ['erreur' => $ex->getMessage()]]);
@@ -645,6 +644,12 @@ class ImmatriculationController extends BaseController
         if($request->isMethod('post')){
              try{
                  $immatriculation = Immatriculation::where('immatriculation_id',$request->input('id'))->get()->first();
+                 // Organisme ou direction proposé par l'agent : à approuver (ou rejeter) avant de valider le dossier
+                 // Seul un dossier en attente peut être validé (pas un dossier rejeté, déjà validé, muté ou réformé)
+                 if($immatriculation && (int) $immatriculation->status !== 0)
+                     return response()->json(['success' => false, 'messages' => ['erreur' => ["Ce dossier n'est pas en attente de validation."]]]);
+                 if($immatriculation && OrganismeService::propositionEnAttente($immatriculation))
+                     return response()->json(['success' => false, 'messages' => ['erreur' => ["Approuvez ou rejetez d'abord l'organisme ou la direction proposé par l'agent."]]]);
                  if($immatriculation){
                      $immatriculation->status = 1;
                      $immatriculation->valided_by = Auth::user()->id;
@@ -824,8 +829,8 @@ class ImmatriculationController extends BaseController
             $dossiers = DB::selectOne("select count(*) total, sum(status = 0) attente, sum(status = 1) valides, sum(status = 2) rejetes,
                                               sum(status in (1,4)) parc, sum(status in (1,4) and modeImmatriculation = 'EP') ep, sum(status in (1,4) and modeImmatriculation = 'VA') va,
                                               sum(status = 1 and imprimer = 0) a_imprimer, sum(imprimer = 1) imprimees,
-                                              sum(status = 0 and minister_id = ?) propositions
-                                       from immatriculations", [OrganismeService::AUTRE_MINISTERE]);
+                                              sum(status = 0 and ".OrganismeService::SQL_PROPOSITION.") propositions
+                                       from immatriculations i");
 
             return response()->json([
                 'success' => true,
@@ -856,6 +861,12 @@ class ImmatriculationController extends BaseController
         'direction' => 'Direction incorrecte',
         'autre' => 'Autre motif',
     ];
+    // Motifs de rejet d'une direction proposée pour un organisme existant
+    const MOTIFS_REJET_DIRECTION = [
+        'inexistant' => 'Direction inexistante dans cet organisme',
+        'doublon' => 'Doublon ou mauvaise orthographe',
+        'autre' => 'Autre motif',
+    ];
 
     /**
      * Rejet de l'organisme (et de la direction) proposé par un agent : le dossier passe en « Rejeté ».
@@ -868,7 +879,7 @@ class ImmatriculationController extends BaseController
         $input = $request->all();
         $validator = Validator::make($input, [
             'immatriculation_id' => 'required|exists:immatriculations,immatriculation_id',
-            'motif' => 'required|in:'.implode(',', array_keys(self::MOTIFS_REJET_ORGANISME)),
+            'motif' => 'required|in:'.implode(',', array_keys(self::MOTIFS_REJET_ORGANISME + self::MOTIFS_REJET_DIRECTION)),
             'commentaire' => 'required_if:motif,autre|nullable|string|max:150',
         ], [
             'immatriculation_id.exists' => "Cette immatriculation n'existe pas.",
@@ -881,18 +892,25 @@ class ImmatriculationController extends BaseController
             return response()->json(['success' => false, 'messages' => $validator->messages()]);
 
         $immatriculation = Immatriculation::find($input['immatriculation_id']);
-        if((int) $immatriculation->status !== 0 || (int) $immatriculation->minister_id !== OrganismeService::AUTRE_MINISTERE)
-            return response()->json(['success' => false, 'messages' => ['erreur' => ["Ce dossier n'a pas de proposition d'organisme en attente."]]]);
+        if((int) $immatriculation->status !== 0 || !OrganismeService::propositionEnAttente($immatriculation))
+            return response()->json(['success' => false, 'messages' => ['erreur' => ["Ce dossier n'a pas de proposition d'organisme ou de direction en attente."]]]);
+        // Direction seule proposée pour un organisme existant : l'organisme reste affecté, l'agent choisira une autre direction
+        $directionSeule = (int) $immatriculation->minister_id !== OrganismeService::AUTRE_MINISTERE;
+        $motifs = $directionSeule ? self::MOTIFS_REJET_DIRECTION : self::MOTIFS_REJET_ORGANISME;
+        if(!isset($motifs[$input['motif']]))
+            return response()->json(['success' => false, 'messages' => ['motif' => ['Motif de rejet inconnu.']]]);
 
         try {
-            DB::transaction(function () use ($immatriculation, $input) {
-                // Proposition archivée dans le rejet, puis retirée du dossier : l'agent devra choisir un autre organisme
-                $proposition = 'Organisme proposé : '.$immatriculation->autreministere
-                    .($immatriculation->autredirection ? ' / Direction : '.$immatriculation->autredirection : '')
+            DB::transaction(function () use ($immatriculation, $input, $directionSeule, $motifs) {
+                // Proposition archivée dans le rejet, puis retirée du dossier : l'agent devra choisir un autre organisme (ou une autre direction)
+                $proposition = ($directionSeule
+                        ? 'Direction proposée : '.$immatriculation->autredirection
+                        : 'Organisme proposé : '.$immatriculation->autreministere
+                            .($immatriculation->autredirection ? ' / Direction : '.$immatriculation->autredirection : ''))
                     .(!empty($input['commentaire']) ? '. '.trim($input['commentaire']) : '');
                 $rejet = new Rejet();
                 $rejet->immatriculation_id = $immatriculation->immatriculation_id;
-                $rejet->raison = self::MOTIFS_REJET_ORGANISME[$input['motif']];
+                $rejet->raison = $motifs[$input['motif']];
                 $rejet->autreraison = mb_substr($proposition, 0, 255);
                 $rejet->typeRejet = 'organisme';
                 $rejet->save();
@@ -900,7 +918,7 @@ class ImmatriculationController extends BaseController
                 $immatriculation->status = 2;
                 $immatriculation->date_decision = Carbon::now();
                 $immatriculation->valided_by = Auth::user()->id;
-                $immatriculation->minister_id = null;
+                if (!$directionSeule) $immatriculation->minister_id = null;
                 $immatriculation->direction_id = 0;
                 $immatriculation->autreministere = '';
                 $immatriculation->autredirection = '';
@@ -910,7 +928,7 @@ class ImmatriculationController extends BaseController
             return response()->json(['success' => false, 'messages' => ['erreur' => [$ex->getMessage()]]]);
         }
         try { broadcast(new DashboardEvent($this->DashBoardOption('rejete')))->toOthers(); } catch (\Throwable $ex) {}
-        return response()->json(['success' => true, 'motif' => self::MOTIFS_REJET_ORGANISME[$input['motif']]]);
+        return response()->json(['success' => true, 'motif' => $motifs[$input['motif']]]);
     }
 
     /**
@@ -973,7 +991,7 @@ class ImmatriculationController extends BaseController
             // File de validation : immatriculations, réformes et mutations en attente (les plus anciennes d'abord)
             // Dossier en attente déjà rejeté = dossier resoumis (nombre de rejets et dernier motif)
             $selectEnAttente = "select i.immatriculation_id id, i.immatriculation_number numero, i.created_at, i.updated_at resoumis_le,
-                                       (i.minister_id = 1000000) nouvel, v.numChassie chassis, ma.title marque, mo.title modele,
+                                       (i.minister_id = 1000000) nouvel, (i.direction_id = 1000000 and i.minister_id <> 1000000) nouvelle_direction, v.numChassie chassis, ma.title marque, mo.title modele,
                                        coalesce(mi.nom, i.autreministere) affectation, concat(u.prenom,' ',u.nom) agent,
                                        (select count(*) from rejets r where r.immatriculation_id = i.immatriculation_id) nb_rejets,
                                        (select concat_ws(' — ', nullif(r.raison,''), nullif(r.autreraison,'')) from rejets r
@@ -1008,9 +1026,14 @@ class ImmatriculationController extends BaseController
             $attente = DB::selectOne("select count(*) total, sum(created_at < ?) retard from immatriculations where status = 0", [Carbon::now()->subDays(7)]);
 
             // Organismes proposés par les agents, à approuver avant validation du dossier
-            $aApprouver = DB::select("select i.immatriculation_id id, i.immatriculation_number numero, i.autreministere nom, concat(u.prenom,' ',u.nom) agent
+            // et directions proposées pour un organisme existant (type « direction »)
+            $aApprouver = DB::select("select i.immatriculation_id id, i.immatriculation_number numero,
+                                             if(i.minister_id = 1000000, i.autreministere, i.autredirection) nom,
+                                             if(i.minister_id = 1000000, 'organisme', 'direction') type, mi.nom organisme,
+                                             concat(u.prenom,' ',u.nom) agent
                                       from immatriculations i left join users u on u.id = i.created_by
-                                      where i.status = 0 and i.minister_id = 1000000 order by i.created_at asc");
+                                      left join ministeres mi on mi.ministere_id = i.minister_id
+                                      where i.status = 0 and ".OrganismeService::SQL_PROPOSITION." order by i.created_at asc");
 
             // Parc : immatriculations validées (mutées comprises), hors réformes
             $parc = DB::selectOne("select count(*) total, sum(modeImmatriculation='EP') ep, sum(modeImmatriculation='VA') va from immatriculations where status in (1,4)");
@@ -1152,7 +1175,7 @@ class ImmatriculationController extends BaseController
                 'organismes' => array_slice(array_map(fn ($o) => ['nom' => $o->nom, 'n' => (int) $o->n, 'ep' => (int) $o->ep, 'va' => (int) $o->va], $organismes), 0, 8),
                 'nbOrganismes' => count($organismes),
                 'genres' => array_map(fn ($g) => ['nom' => $g->nom, 'n' => (int) $g->n], $genres),
-                'aApprouver' => DB::table('immatriculations')->where('status', 0)->where('minister_id', OrganismeService::AUTRE_MINISTERE)->count(),
+                'aApprouver' => DB::table('immatriculations as i')->where('i.status', 0)->whereRaw(OrganismeService::SQL_PROPOSITION)->count(),
             ]);
         }
         catch (QueryException $ex){

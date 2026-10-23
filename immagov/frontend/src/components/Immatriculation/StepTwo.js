@@ -1,10 +1,11 @@
 import { useState ,useEffect,useMemo} from "react";
 import { useForm } from "react-hook-form";
 import {getCarInformation} from "../../services/vehicule.service";
+import { getTypeByGenre } from "../../utils/vehicule.util";
 import Spinner from "../Spinner/Spinner";
 import { colors } from "../../utils/colors";
-import { getPays ,isEmpty, isDateValid,checkValid,validateDate} from '../../utils/helper/functions';
-import { carosseries } from "../../services/utils/carosserie";
+import { getPays ,isEmpty, isDateValid,checkValid,validateDate,estReimmatriculation} from '../../utils/helper/functions';
+import { carrosseriesDuType } from "../../services/utils/carosserie";
 import Field from "./ui/Field";
 import Input from "../ui/Input/Input";
 import FormSection from "./ui/FormSection";
@@ -29,7 +30,7 @@ const ACQUISITIONS = [
 ];
 
 const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatriculation,stepChk,setStepChk ,paiement,erreurs,setStep}) => {
-    const { register, handleSubmit, reset,formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         defaultValues:{
             immatriculation
         }
@@ -37,7 +38,23 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
   const [currentYear,setCurrentYear] = useState('');
   const [isLoading,setIsLoading] = useState(false);
   const [modeles,setModeles] = useState([]);
-  const [types,setTypes] = useState([]);
+  // Genre trouvé depuis la catégorie SIPIM : verrouillé ; sinon l'agent le choisit
+  const [genreVerrouille] = useState(() => immatriculation.genre != 0);
+  // Types du genre choisi, relus sur le serveur (la liste chargée au démarrage peut dater d'avant un ajout de types)
+  const typesCharges = useMemo(() => (Array.isArray(immatriculation.categories.AllTypes) && immatriculation.genre != 0
+      ? immatriculation.categories.AllTypes.filter((t) => t.genre_id == immatriculation.genre) : []),
+    [immatriculation.categories.AllTypes, immatriculation.genre]);
+  const [typesServeur, setTypesServeur] = useState(null);
+  useEffect(() => {
+    setTypesServeur(null);
+    if (immatriculation.genre == 0) return undefined;
+    let actif = true;
+    getTypeByGenre(immatriculation.genre)
+      .then((liste) => { if (actif && Array.isArray(liste)) setTypesServeur(liste); })
+      .catch(() => {});
+    return () => { actif = false; };
+  }, [immatriculation.genre]);
+  const types = typesServeur || typesCharges;
   const [energieManquante,setEnergieManquante] = useState(false);
   const isstepValid = useMemo(() => {
       return checkValid(immatriculation);
@@ -46,16 +63,33 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
     useEffect(()=>{
         setStepChk({...stepChk,step2:isstepValid});
         setCurrentYear(new Date().getFullYear());
-        if(immatriculation.genre != 0){
-            const seletedTypes  = immatriculation.categories.AllTypes? immatriculation.categories.AllTypes.filter(g => g.genre_id == immatriculation.genre):[];
-            setTypes(seletedTypes);
-        }
         if(immatriculation.marque != 0){
             const modeleSelected = immatriculation.brands.allModeles? immatriculation.brands.allModeles.filter(g => g.marque_id == immatriculation.marque):[];
             setModeles(modeleSelected);
         }
       reset(immatriculation)
     },[isstepValid,immatriculation.categories.AllTypes,immatriculation.brands.allModeles]);
+
+  // Un seul type pour ce genre : sélectionné d'office ; type d'un autre genre : retiré
+  useEffect(() => {
+    const valide = types.some((t) => t.type_id == immatriculation.type);
+    const type = types.length === 1 && !valide ? String(types[0].type_id) : !valide && immatriculation.type != 0 ? '0' : null;
+    if (type === null) return;
+    setImmatriculation((prev) => ({ ...prev, type }));
+    setValue('type', type);
+  }, [types]);
+
+  // Carrosseries du type choisi ; une seule possible : sélectionnée d'office ; incompatible avec le type : retirée
+  const typeChoisi = types.find((t) => t.type_id == immatriculation.type);
+  const carrosseries = useMemo(() => carrosseriesDuType(typeChoisi), [typeChoisi]);
+  useEffect(() => {
+    if (!typeChoisi) return;
+    const valide = carrosseries.some((c) => c.id === immatriculation.carrosserie);
+    const carrosserie = carrosseries.length === 1 && !valide ? carrosseries[0].id : !valide && immatriculation.carrosserie != 0 ? 0 : null;
+    if (carrosserie === null) return;
+    setImmatriculation((prev) => ({ ...prev, carrosserie }));
+    setValue('carrosserie', carrosserie);
+  }, [carrosseries]);
 
   const pays = getPays();
   // Valeur fournie par le paiement SIPIM : le champ est alors verrouillé
@@ -114,12 +148,7 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
     }
    }
    const handleGenre = (e) => {
-    setImmatriculation({...immatriculation,genre:e.target.value});
-    setTypes([]);
-    if(e.target.value != 0 ){
-      const seletedTypes  = immatriculation.categories.AllTypes? immatriculation.categories.AllTypes.filter(g => g.genre_id == e.target.value):[];
-      setTypes(seletedTypes);
-    }
+    setImmatriculation({...immatriculation,genre:e.target.value,type:'0'});
    }
    // L'énergie n'est plus un <select> : on la contrôle avant de passer à l'étape suivante
    const onValid = () => {
@@ -162,7 +191,7 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                         />
                     </Field>
                     <Field label="Genre" required error={errors.genre && "Le genre du véhicule est obligatoire."}>
-                        <select name="genre" value={immatriculation.genre} disabled id="genre"
+                        <select name="genre" value={immatriculation.genre} disabled={genreVerrouille} id="genre"
                             {...register('genre', { onChange: (e) => handleGenre(e), validate: (value) => value != 0 })}>
                             <option value={0}>Genre de véhicule</option>
                             {immatriculation.categories.AllGenres.length > 0 && immatriculation.categories.AllGenres.map((genre) =>
@@ -170,17 +199,17 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                         </select>
                     </Field>
                     <Field label="Type" required error={errors.type && "Le type de véhicule est obligatoire."}>
-                        <select name="type" value={immatriculation.type} id="type"
-                            {...register('type', { onChange: (e) => handleInput(e), validate: (value) => value !== '0' })}>
-                            <option value={'0'}>Type de véhicule</option>
+                        <select name="type" value={immatriculation.type} id="type" disabled={types.length === 0}
+                            {...register('type', { onChange: (e) => handleInput(e), validate: (value) => !!value && value != 0 })}>
+                            <option value={'0'}>{types.length ? "Type de véhicule" : "Choisissez d'abord le genre"}</option>
                             {Array.isArray(types) && types.map((type) => <option key={type.type_id} value={type.type_id}>{type.nom}</option>)}
                         </select>
                     </Field>
                     <Field label="Carrosserie" required error={errors.carrosserie && "La carrosserie du véhicule est obligatoire."}>
-                        <select name="carrosserie" id="carrosserie" value={immatriculation.carrosserie}
-                            {...register('carrosserie', { onChange: (e) => handleInput(e), validate: (value) => value != 0 })}>
-                            <option value={0}>Sélectionner la carrosserie</option>
-                            {carosseries.map((carosserie) => <option key={carosserie.id} value={carosserie.id}>{carosserie.nom}</option>)}
+                        <select name="carrosserie" id="carrosserie" value={immatriculation.carrosserie} disabled={!typeChoisi}
+                            {...register('carrosserie', { onChange: (e) => handleInput(e), validate: (value) => !!value && value != 0 })}>
+                            <option value={0}>{typeChoisi ? "Sélectionner la carrosserie" : "Choisissez d'abord le type"}</option>
+                            {carrosseries.map((carosserie) => <option key={carosserie.id} value={carosserie.id}>{carosserie.nom}</option>)}
                         </select>
                     </Field>
                     <Field label="Couleur" required error={errors.couleur && "Veuillez choisir la couleur."}>
@@ -203,12 +232,14 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                             {...register('dateP', { onChange: (e) => handleInput(e), validate: (value) => isDateValid(value) && validateDate(value) })}
                         />
                     </Field>
+{estReimmatriculation(paiement) && (
                     <Field label="Ancien numéro d'immatriculation" error={errors.ancienNumMat?.message}>
                         <Input mono invalid={!!errors.ancienNumMat} type="text" value={immatriculation.ancienNumMat} name="ancienNumMat" placeholder="ex : RC-1234-A"
                             {...register('ancienNumMat', { onChange: (e) => handleInput(e),
                                 pattern:{ value: /[A-Z]{2,3}-[0-9]{4}-[A-Z]{1,2}/, message:"Respectez le format d'immatriculation (ex : RC-1234-A)." } })}
                         />
                     </Field>
+                    )}
                 </FormSection>
 
                 <div className="immat-divider" />

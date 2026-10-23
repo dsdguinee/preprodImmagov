@@ -236,7 +236,7 @@ class UtilisateurController extends Controller
                "editeur" => "",
                "statistique" => "",
                "reservation" => "",
-
+               "disponibilite" => "",
 
            ];
         
@@ -272,6 +272,8 @@ class UtilisateurController extends Controller
                    $menus['statistique'] = "statistique";
                else if($user_role_privilege->privilege === "Reservation")
                    $menus['reservation'] = "reservation";
+               else if($user_role_privilege->privilege === "Disponibilité")
+                   $menus['disponibilite'] = "disponibilite";
            }
 
             return response()->json(['success' => true, 'status' => 200,

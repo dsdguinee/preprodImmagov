@@ -16,6 +16,7 @@ use \App\Http\Controllers\API\RolePrivilegeController;
 use \App\Http\Controllers\API\TestController;
 use \App\Http\Controllers\API\ImpressionController;
 use \App\Http\Controllers\API\PaiementController;
+use \App\Http\Controllers\API\DisponibiliteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,9 +94,9 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         //la resoumission
         Route::post('/resoumission', [ImmatriculationController::class, 'resoumission']);
 
-        Route::post('/validerImmatriculation', [ImmatriculationController::class, 'validerImmatriculation']);
-        Route::post('/rejet', [ImmatriculationController::class, 'rejet']);
-        Route::post('/rejetOrganisme', [ImmatriculationController::class, 'rejeterPropositionOrganisme']);
+        Route::post('/validerImmatriculation', [ImmatriculationController::class, 'validerImmatriculation'])->middleware('validation');
+        Route::post('/rejet', [ImmatriculationController::class, 'rejet'])->middleware('validation');
+        Route::post('/rejetOrganisme', [ImmatriculationController::class, 'rejeterPropositionOrganisme'])->middleware('validation');
         Route::post('/generateqrcode', [ImmatriculationController::class, 'generateqrcode']);
         Route::post('/ImmatriculationforNewMinistere', [ImmatriculationController::class, 'ImmatriculationforNewMinistere']);
 
@@ -111,10 +112,18 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::get('/getmutationBy/{mutation_id}', [MutationController::class, 'getmutationBy']);
         Route::post('/resoumission', [MutationController::class, 'resoumission']);
 
-        Route::post('/valider', [MutationController::class, 'validerMutation']);
-        Route::post('/rejet', [MutationController::class, 'rejet']);
+        Route::post('/valider', [MutationController::class, 'validerMutation'])->middleware('validation');
+        Route::post('/rejet', [MutationController::class, 'rejet'])->middleware('validation');
         Route::get('/immatriculationtionmutations', [MutationController::class, 'immatriculationtionmutations']);
         Route::get('/isStatusAttente', [MutationController::class, 'isStatusAttente']);
+    });
+    // Disponibilité des véhicules du parc (gestion : Direction Générale GG)
+    Route::prefix('disponibilite')->group(function () {
+        Route::get('/vehicules', [DisponibiliteController::class, 'vehicules']);
+        Route::get('/stats', [DisponibiliteController::class, 'stats']);
+        Route::get('/historique/{immatriculation_id}', [DisponibiliteController::class, 'historique']);
+        Route::post('/indisponible', [DisponibiliteController::class, 'indisponible']);
+        Route::post('/disponible', [DisponibiliteController::class, 'disponible']);
     });
     Route::prefix('reforme')->group(function () {
         Route::post('/new', [ReformeController::class, 'NewReforme']);
@@ -128,8 +137,8 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::post('/resoumission', [ReformeController::class, 'resoumission']);
         Route::get('/immatriculationtoreforme', [ReformeController::class, 'immatriculationtoreforme']);
         //valider une reforme
-        Route::post('/valider', [ReformeController::class, 'validerReforme']);
-        Route::post('/rejet', [ReformeController::class, 'rejet']);
+        Route::post('/valider', [ReformeController::class, 'validerReforme'])->middleware('validation');
+        Route::post('/rejet', [ReformeController::class, 'rejet'])->middleware('validation');
 
     });
     Route::prefix('organisation')->group(function () {
@@ -139,7 +148,7 @@ Route::group(['middleware' => ['jwt.verify']],function (){
         Route::get('/getdirectionsByMinistere/{ministere_id}', [Organisation::class, 'getdirectionsByMinistere']);
         Route::get('/direction/{direction_id}', [Organisation::class, 'getdirectionbyID']);
         Route::get('/getministereByName/{ministereName}', [Organisation::class, 'getministereByName']);
-        Route::post('/create/New/Ministere/directions/validedation', [Organisation::class, 'createMinistereDirectionsValidation']);
+        Route::post('/create/New/Ministere/directions/validedation', [Organisation::class, 'createMinistereDirectionsValidation'])->middleware('validation');
 
         Route::post('/ministere/New', [Organisation::class, 'addNewMinistere']);
         Route::post('/ministere/update', [Organisation::class, 'UpdateMinistere']);

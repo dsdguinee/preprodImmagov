@@ -9,6 +9,7 @@ import Spinner from "../../components/Spinner/Spinner";
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from "react-router-dom";
 import moment from "moment";
+import { estReimmatriculation } from "../../utils/helper/functions";
 import { getPaiementSipim, getReservationList, dossierParChassis } from "../../services/immatriculation.service";
 import { MutationVehicule, MutationAffectation, MutationSoumission } from "../../components/Immatriculation/Mutation";
 import { ReformeVehicule, ReformeProprietaire, ReformePiece, ReformeSoumission, proprietaireVide } from "../../components/Immatriculation/Reforme";
@@ -31,7 +32,16 @@ const ETAPES_REFORME = [
   { label: "Soumission", hint: "Vérification" },
 ];
 // modeImmat SIPIM : « Réforme » (avec ou sans accent)
-const estReforme = (paiement) => String(paiement?.modeImmat || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "reforme";
+// Genre immagov correspondant à la catégorie SIPIM : noms comparés sans accents, casse ni espaces,
+// en tolérant les écarts d'orthographe connus (SIPIM « Motocyles » / immagov « MOTOCYCLES »)
+const normaliserNom = (nom) => String(nom || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z]/g, "");
+const ALIAS_GENRES = { MOTOCYLES: "MOTOCYCLES" };
+const genreDeCategorie = (genres, categorie) => {
+  const nom = normaliserNom(categorie);
+  const cible = ALIAS_GENRES[nom] || nom;
+  return (genres || []).find((g) => normaliserNom(g.nom) === cible)?.genre_id || 0;
+};
+const estReforme = (paiement) =>String(paiement?.modeImmat || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "reforme";
 // État de départ du dossier (aussi utilisé pour vider le formulaire après l'enregistrement)
 const dossierVide = () => (
     {modeImmatriculation:'',
@@ -61,6 +71,7 @@ const dossierVide = () => (
       ministere: 0,
       direction:'',
       autreministere:'',
+      ministereSipim:'',
       nbreEssuie:0,
       autredirection:'',
       typeOrganisme:"",
@@ -135,15 +146,22 @@ const Immatriculation = () => {
           setStepChk({...stepChk,step1:true,step2:true,step3:false,step4:false}); setStep(step + 1);
         }
       }
+      // Immatriculation / réimmatriculation : impossible avec une référence payée sans type de plaque
+      else if(resp.data.status === 200 && resp.data?.paiement?.status === 'Validé' && !dejaUtilisee && !String(resp.data.paiement.type_plaque || '').trim()){
+        setErreurs("Cette référence n'a pas de type de plaque : l'immatriculation et la réimmatriculation ne sont pas possibles. Le paiement doit inclure une plaque.");
+        setImmatriculation({...immatriculation,isReferenceValid:false,mutation:null,reforme:null});
+        setStepChk({...stepChk,step1:false,step2:false,step3:false,step4:false,step5:false});
+      }
       else if(resp.data.status === 200 && resp.data?.paiement?.status === 'Validé' && !dejaUtilisee){
-        const getCategorie= immatriculation?.categories.AllGenres?immatriculation.categories.AllGenres.filter((c) => c.nom.toUpperCase().trim() === resp.data.paiement.genre.toUpperCase().trim()):[];
-        let genreID = 0;
-        if(getCategorie.length > 0)
-           genreID = getCategorie[0]?.genre_id;
- 
+        const genreID = genreDeCategorie(immatriculation.categories.AllGenres, resp.data.paiement.genre);
+        // Type remis à zéro : il est choisi parmi les types du genre à l'étape suivante
         setImmatriculation({...immatriculation,isReferenceValid:true,mutation:null,reforme:null,
-          numChassie:resp.data.paiement.chassis,genre:genreID,pa:resp.data?.paiement.pf,          cu:resp.data?.paiement.cu,pv:resp.data?.paiement.pv,nbPlaceAssise:resp.data?.paiement.nbrePlace,
-           modeImmatriculation:resp.data?.paiement?.type_plaque,typeOrganisme:resp.data.paiement.typeOrganisme || ''});
+          numChassie:resp.data.paiement.chassis,genre:genreID,type:'0',
+          ancienNumMat:estReimmatriculation(resp.data.paiement) ? immatriculation.ancienNumMat : '',pa:resp.data?.paiement.pf,          cu:resp.data?.paiement.cu,pv:resp.data?.paiement.pv,nbPlaceAssise:resp.data?.paiement.nbrePlace,
+           modeImmatriculation:resp.data?.paiement?.type_plaque,typeOrganisme:resp.data.paiement.typeOrganisme || '',
+           // Ministère du paiement SIPIM : présélectionné à l'étape Affectation
+           ministereSipim:resp.data.paiement.ministere || '',typeClient:resp.data.paiement.typeClient || '',
+           ministere:0,direction:0,autreministere:'',autredirection:''});
         setStepChk({...stepChk,step1:true}); setStep(step + 1);
        // console.log(resp.data.paiement)
 

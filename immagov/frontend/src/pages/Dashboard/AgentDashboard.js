@@ -211,6 +211,9 @@ const AgentDashboard = ({ data, user }) => {
                           ? <Link to={d.operation.lien(d)} className={d.status === 2 ? "agent-btn agent-btn--outline agent-btn--table" : "agent-lien-table"}>Voir</Link>
                           : d.status === 2
                           ? <Link {...correction(rejetsParId[d.immatriculation_id] || d)} className="agent-btn agent-btn--outline agent-btn--table">Corriger</Link>
+                          : d.status === 0
+                          // En attente : modifiable par l'agent tant que le Directeur n'a pas décidé
+                          ? <Link to={`/resoumission/${d.immatriculation_id}`} className="agent-lien-table">Modifier</Link>
                           : <Link to={`/details-immatriculation/${d.immatriculation_id}`} className="agent-lien-table">Voir</Link>}
                       </td>
                     </tr>

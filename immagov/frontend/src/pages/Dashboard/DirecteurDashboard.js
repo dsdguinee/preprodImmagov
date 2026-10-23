@@ -7,6 +7,7 @@ import { GiSandsOfTime } from "react-icons/gi";
 import { BiTimer, BiCar } from "react-icons/bi";
 import { dashboardDirecteur } from "../../services/immatriculation.service";
 import Spinner from "../../components/Spinner/Spinner";
+import ParcDisponibiliteCard from "../../components/Disponibilite/ParcDisponibiliteCard";
 
 const FORMAT = "YYYY-MM-DD";
 // Périodes rapides : dates calculées ici, envoyées au backend en du / au
@@ -196,6 +197,7 @@ const DirecteurDashboard = ({ user }) => {
                         <td>
                           {l.affectation || "—"}
                           {!!Number(l.nouvel) && <span className="dir-tag">Nouvel organisme à approuver</span>}
+                          {!!Number(l.nouvelle_direction) && <span className="dir-tag">Nouvelle direction à approuver</span>}
                           {ongletActif.resoumis && l.dernier_motif && (
                             <span className="dir-motif">Rejet précédent : {l.dernier_motif}</span>
                           )}
@@ -203,8 +205,8 @@ const DirecteurDashboard = ({ user }) => {
                         <td>{l.agent || "—"}</td>
                         <td><span className={`agent-delai dir-delai--${l.age.ton}`}>{l.age.texte}</span></td>
                         <td className="is-right">
-                          {Number(l.nouvel)
-                            ? <Link to={`/organisation/ministere/create/${l.id}`} className="agent-btn dir-btn--approuver">Approuver l'organisme</Link>
+                          {Number(l.nouvel) || Number(l.nouvelle_direction)
+                            ? <Link to={`/organisation/ministere/create/${l.id}`} className="agent-btn dir-btn--approuver">{Number(l.nouvel) ? "Approuver l'organisme" : "Approuver la direction"}</Link>
                             : <Link to={ongletActif.lien(l.id)} className="agent-btn agent-btn--outline">Examiner</Link>}
                         </td>
                       </tr>
@@ -277,18 +279,21 @@ const DirecteurDashboard = ({ user }) => {
         </div>
 
         <aside className="agent-dash__side">
+          {/* Disponibilité du parc (Direction Générale GG) */}
+          <ParcDisponibiliteCard />
           {/* Organismes à approuver */}
           <section className={`agent-card agent-side-card${aApprouver.length ? " dir-side--attention" : ""}`}>
             <div className="agent-side-card__head">
               <span className="agent-count dir-count--ambre">{aApprouver.length}</span>
-              <h2 className="agent-card__title">Organismes à approuver</h2>
+              <h2 className="agent-card__title">Organismes et directions à approuver</h2>
             </div>
             <p className="agent-muted">Proposés par les agents ; ils bloquent la validation de leur dossier.</p>
-            {aApprouver.length === 0 && <p className="agent-muted">Aucun organisme à approuver.</p>}
+            {aApprouver.length === 0 && <p className="agent-muted">Aucun organisme ni direction à approuver.</p>}
             {aApprouver.map((a) => (
               <div key={a.id} className="dir-approuver">
                 <div className="dir-approuver__info">
                   <span className="agent-cell-main">{a.nom}</span>
+                  {a.type === "direction" && <span className="agent-muted">Nouvelle direction · {a.organisme}</span>}
                   <span className="agent-muted"><span className="agent-mono">{a.numero}</span> · {a.agent}</span>
                 </div>
                 <Link to={`/organisation/ministere/create/${a.id}`} className="agent-btn agent-btn--outline">Examiner</Link>

@@ -1,0 +1,240 @@
+// Parc automobile : disponibilité des véhicules (préfixe parc-, réutilise les styles agent- et dir- des tableaux de bord)
+.parc-page {
+  .parc-liste {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .parc-mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 600;
+  }
+  .parc-etat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    .agent-muted {
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .parc-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    .agent-btn {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+  }
+}
+
+.parc-filtres {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: $ag-line;
+}
+.parc-filtre {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $ag-muted;
+  cursor: pointer;
+  &:hover { color: $ag-ink; }
+  &.is-active {
+    background: #fff;
+    color: $ag-green-dark;
+    box-shadow: 0 1px 2px rgba(20, 32, 28, .12);
+  }
+  &:focus-visible { outline: 2px solid $ag-green; outline-offset: 1px; }
+}
+
+.agent-dash .agent-btn.parc-btn--danger {
+  border: 1px solid $ag-red;
+  background: #fff;
+  color: $ag-red;
+  &:hover { background: $ag-red-bg; }
+}
+.agent-dash .agent-btn.parc-btn--lien {
+  border: 0;
+  background: transparent;
+  color: #016b54;
+  padding: 0 6px;
+  &:hover { text-decoration: underline; }
+}
+
+.parc-pieces {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  a {
+    font-size: 13px;
+    font-weight: 600;
+    color: #016b54;
+  }
+}
+
+// Bloc des tableaux de bord
+.parc-card {
+  &__chiffres {
+    display: flex;
+    gap: 24px;
+    > div { display: flex; flex-direction: column; }
+  }
+  &__indispo { color: $ag-red; }
+  &__barre {
+    height: 8px;
+    border-radius: 999px;
+    background: $ag-red-bg;
+    overflow: hidden;
+    span { display: block; height: 100%; background: $ag-green; border-radius: 999px; }
+  }
+  &__export {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    .agent-btn { height: 34px; }
+  }
+  &__motifs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    li { display: flex; justify-content: space-between; color: $ag-text; }
+  }
+}
+
+// Fenêtres de gestion
+.parc-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(20, 32, 28, .45);
+  font-family: $ag-font;
+  &__box {
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(20, 32, 28, .25);
+  }
+  &__head {
+    position: relative;
+    padding: 18px 52px 12px 20px;
+    border-bottom: 1px solid $ag-line;
+    h2 { margin: 0 0 4px; font-size: 18px; color: $ag-ink; }
+  }
+  &__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    color: $ag-muted;
+    cursor: pointer;
+    &:hover, &:focus-visible { background: $ag-line; color: $ag-ink; }
+  }
+  &__body { padding: 16px 20px; }
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 20px 16px;
+    border-top: 1px solid $ag-line;
+    .agent-btn { height: 40px; }
+  }
+}
+
+.parc-form { display: flex; flex-direction: column; gap: 14px; }
+.parc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.parc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  label { font-size: 13px; font-weight: 600; color: $ag-text; }
+  select, input[type="date"], textarea {
+    font: inherit;
+    font-size: 14px;
+    padding: 9px 10px;
+    border: 1px solid $ag-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $ag-ink;
+    &:focus { outline: 2px solid $ag-green; outline-offset: 0; border-color: $ag-green; }
+    &[aria-invalid="true"] { border-color: $ag-red; }
+  }
+  input[type="file"] {
+    font-size: 13px;
+    padding: 10px;
+    border: 1px dashed $ag-border;
+    border-radius: 8px;
+    background: #fafcfb;
+    &[aria-invalid="true"] { border-color: $ag-red; }
+  }
+  textarea { resize: vertical; }
+}
+.parc-requis { color: $ag-red; }
+.parc-aide { font-size: 12px; color: $ag-muted; }
+.parc-erreur { font-size: 12px; font-weight: 600; color: $ag-red; }
+.parc-rappel {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: $ag-red-bg;
+  color: $ag-red;
+  font-size: 13px;
+}
+.parc-alert--error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: $ag-red-bg;
+  color: $ag-red;
+  font-size: 13px;
+  p { margin: 0; }
+}
+
+.parc-historique {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    border-top: 1px solid $ag-line;
+    font-size: 13px;
+    &:first-child { border-top: 0; padding-top: 0; }
+    p { margin: 0; color: $ag-text; }
+  }
+  &__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+}

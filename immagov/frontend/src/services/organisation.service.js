@@ -20,6 +20,11 @@ export async function getMinistereById(ministere_id){
     });
     return result;
 }
+// Organisme complet (nom, type, catégorie) ; null s'il n'existe pas
+export async function getOrganismeById(ministere_id){
+    const resp = await getConnexion().get(`/organisation/ministere/${ministere_id}`);
+    return resp.data?.ministere || null;
+}
 export async function getDirectionByID(directionID){
     const result =  await getConnexion().get(`/organisation/direction/${directionID}`).then((resp) => {
         if( resp.data.status === 404 )

@@ -15,6 +15,15 @@ class OrganismeService
 {
     // Code de la proposition « autre ministère » saisie par un agent
     const AUTRE_MINISTERE = 1000000;
+    // Code de la proposition d'une nouvelle direction pour un organisme existant (nom dans autredirection)
+    const AUTRE_DIRECTION = 1000000;
+    // Dossier (alias i) avec un organisme ou une direction proposé, à approuver par le Directeur avant validation
+    const SQL_PROPOSITION = '(i.minister_id = 1000000 or i.direction_id = 1000000)';
+
+    public static function propositionEnAttente(Immatriculation $immatriculation)
+    {
+        return (int) $immatriculation->minister_id === self::AUTRE_MINISTERE || (int) $immatriculation->direction_id === self::AUTRE_DIRECTION;
+    }
 
     // Espaces superflus retirés (début, fin, espaces multiples)
     public static function normaliser($nom)
@@ -50,6 +59,15 @@ class OrganismeService
      */
     public static function rattacherSiExistant(Immatriculation $immatriculation)
     {
+        // Direction proposée pour un organisme existant : rattachée si une direction de ce nom existe déjà
+        if ((int) $immatriculation->direction_id === self::AUTRE_DIRECTION && (int) $immatriculation->minister_id !== self::AUTRE_MINISTERE) {
+            $nom = self::normaliser($immatriculation->autredirection);
+            $direction = $nom === '' ? null : Direction::where('ministere_id', $immatriculation->minister_id)->where('nom', $nom)->first();
+            if (!$direction) return null;
+            $immatriculation->direction_id = $direction->direction_id;
+            $immatriculation->autredirection = '';
+            return Ministere::find($immatriculation->minister_id);
+        }
         if ((int) $immatriculation->minister_id !== self::AUTRE_MINISTERE) return null;
         $ministere = self::trouverParNom($immatriculation->autreministere);
         if (!$ministere) return null;

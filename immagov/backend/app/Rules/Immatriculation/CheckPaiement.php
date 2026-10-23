@@ -51,6 +51,11 @@ class CheckPaiement implements Rule
                          $this->msg = 'Cette référence de paiement a déjà été utilisée.';
                          return false;
                      }
+                     // Immatriculation / reimmatriculation : impossible sans type de plaque paye
+                     else if(trim((string) ($respjson->paiement->type_plaque ?? '')) === ''){
+                         $this->msg = "Cette référence n'a pas de type de plaque : l'immatriculation et la réimmatriculation ne sont pas possibles.";
+                         return false;
+                     }
 
                      else{
                          $paiementExist = Immatriculation::where('paiementReference','=',trim($value))->get()->first();
