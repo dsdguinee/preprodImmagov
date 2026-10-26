@@ -13,9 +13,10 @@ const base = {
   image4: new File(["%PDF"], "lettre.pdf", { type: "application/pdf" }),
   organisations: {
     allMinisteres: [
-      { ministere_id: 2, nom: "CBG", typeorganisme: "Privé" },
-      { ministere_id: 24, nom: "MINISTERE des Mines", typeorganisme: "Privé" },
-      { ministere_id: 9, nom: "Ministère de la Santé", typeorganisme: "Publique" },
+      // Tout organisme est « Publique » (ministère / institution ou entreprise publique)
+      { ministere_id: 2, nom: "CBG", typeorganisme: "Publique", categorie: "Entreprise Publique" },
+      { ministere_id: 24, nom: "MINISTERE des Mines", typeorganisme: "Publique", categorie: "Ministère" },
+      { ministere_id: 9, nom: "Ministère de la Santé", typeorganisme: "Publique", categorie: "Ministère" },
     ],
     allDirections: { directions: [{ direction_id: 5, ministere_id: 2, nom: "Direction générale" }] },
   },
@@ -27,17 +28,20 @@ const Affectation = ({ onNext }) => {
   return <MutationAffectation immatriculation={imm} setImmatriculation={setImm} handleNextStep={onNext} handlePrevStep={() => {}} stepChk={chk} setStepChk={setChk} />;
 };
 
-test("nouvelle affectation : organismes du type du dossier, sans l'organisme actuel, choix obligatoire", () => {
+// Ancien dossier encore marqué « Privé » : les organismes (tous « Publique ») doivent quand même être proposés
+test("nouvelle affectation : tous les organismes sauf l'actuel, avec leur catégorie, choix obligatoire", () => {
   const suivant = jest.fn();
   render(<Affectation onNext={suivant} />);
   expect(screen.getByText("MINISTERE des Mines")).toBeInTheDocument(); // organisme actuel rappelé
+  expect(screen.getByText("Ministère / institution")).toBeInTheDocument(); // sa catégorie
   fireEvent.click(screen.getByRole("button", { name: "Continuer" }));
   expect(screen.getByText("Choisissez le nouvel organisme d'affectation.")).toBeInTheDocument();
   expect(suivant).not.toHaveBeenCalled();
 
   fireEvent.click(screen.getByRole("button", { name: "Sélectionner le nouvel organisme" }));
-  expect(screen.getAllByRole("option").map((o) => o.textContent.trim())).toEqual(["CBG"]);
-  fireEvent.click(screen.getByRole("option", { name: "CBG" }));
+  // Ministères d'abord, puis entreprises publiques
+  expect(screen.getAllByRole("option").map((o) => o.textContent.trim())).toEqual(["Ministère de la Santé · Ministère / institution", "CBG · Entreprise publique"]);
+  fireEvent.click(screen.getByRole("option", { name: "CBG · Entreprise publique" }));
   fireEvent.click(screen.getByRole("button", { name: "Continuer" }));
   expect(suivant).toHaveBeenCalled();
 });

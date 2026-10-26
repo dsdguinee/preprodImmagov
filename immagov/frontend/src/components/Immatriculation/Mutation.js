@@ -16,6 +16,10 @@ import HistoriqueVehicule from "./HistoriqueVehicule";
  * l'agent choisit le nouvel organisme et ajoute la pièce jointe. La mutation part en validation chez le Directeur.
  */
 
+// Marqueur « autre organisme » (proposition d'un agent), jamais proposé comme affectation
+const AUTRE_ORGANISME = 1000000;
+const libelleCategorie = (categorie) => (categorie === "Ministère" ? "Ministère / institution" : "Entreprise publique");
+
 const ou = (v, defaut = "—") => (v === undefined || v === null || v === "" ? defaut : v);
 
 // En-tête commun : dossier repris
@@ -86,10 +90,14 @@ const toutesDirections = (immatriculation) => {
 export const MutationAffectation = ({ immatriculation, setImmatriculation, handleNextStep, handlePrevStep, stepChk, setStepChk }) => {
   const d = immatriculation.mutation.dossier;
   const [erreur, setErreur] = useState("");
-  // Organismes existants du type du dossier ; l'organisme actuel n'est pas proposé
-  const ministeres = useMemo(() => (immatriculation.organisations.allMinisteres || []).filter((m) =>
-    m.typeorganisme?.toLowerCase() === immatriculation.typeOrganisme?.toLowerCase() && m.ministere_id != d.minister_id
-  ), [immatriculation.organisations.allMinisteres, immatriculation.typeOrganisme, d.minister_id]);
+  // Tous les organismes (ministères / institutions et entreprises publiques) sauf l'actuel.
+  // Pas de filtre sur le type du dossier : d'anciens dossiers sont encore « Privé » alors que tout organisme est « Publique ».
+  const organismes = immatriculation.organisations.allMinisteres || [];
+  const ministeres = useMemo(() => organismes
+    .filter((m) => m.ministere_id != d.minister_id && m.ministere_id != AUTRE_ORGANISME)
+    .sort((a, b) => (a.categorie === b.categorie ? a.nom.localeCompare(b.nom, "fr") : a.categorie === "Ministère" ? -1 : 1)),
+  [organismes, d.minister_id]);
+  const categorieActuelle = organismes.find((m) => m.ministere_id == d.minister_id)?.categorie;
   const directions = toutesDirections(immatriculation).filter((x) => x.ministere_id == immatriculation.ministere);
   const valide = !!immatriculation.ministere && immatriculation.ministere != 0;
   useEffect(() => { setStepChk({ ...stepChk, step3: valide, step4: valide }); }, [valide]);
@@ -109,13 +117,13 @@ export const MutationAffectation = ({ immatriculation, setImmatriculation, handl
         <div className="immat-kv">
           <div><span>Organisme actuel</span><strong>{ou(d.ministere)}</strong></div>
           <div><span>Direction actuelle</span><strong>{ou(d.direction)}</strong></div>
-          {immatriculation.typeOrganisme && <div><span>Type d'organisme</span><strong>{immatriculation.typeOrganisme}</strong></div>}
+          {categorieActuelle && <div><span>Catégorie</span><strong>{libelleCategorie(categorieActuelle)}</strong></div>}
         </div>
         <div className="immat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           <Field label="Nouvel organisme" required error={erreur}>
             <SearchSelect id="ministere-mutation" name="ministere" value={immatriculation.ministere}
               placeholder="Sélectionner le nouvel organisme" searchPlaceholder="Rechercher un ministère ou un organisme…"
-              options={ministeres.map((m) => ({ value: String(m.ministere_id), label: m.nom }))}
+              options={ministeres.map((m) => ({ value: String(m.ministere_id), label: `${m.nom} · ${libelleCategorie(m.categorie)}` }))}
               onChange={(e) => { setErreur(""); setImmatriculation({ ...immatriculation, ministere: e.target.value, direction: 0 }); }} />
           </Field>
           <Field label="Direction ou service">
