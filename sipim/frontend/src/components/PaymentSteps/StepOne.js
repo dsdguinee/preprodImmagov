@@ -376,9 +376,6 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
               <option value="" key={"typeClient"}>
                 Selectionnez le type de client
               </option>
-              <option value="Particulier" key={"particulier"}>
-                Particulier
-              </option>
                <option value="Entreprise Publique" key={"entreprise"}>
                 Entreprise Publique
               </option>
@@ -418,7 +415,6 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
             <label>
               {paiement.typeClient === "Entreprise Publique" && 
                 "Nom de l'entreprise"}
-              {paiement.typeClient === "Particulier" &&  "Prénom et Nom"}
               {paiement.typeClient === "Gouvernement" &&  "Nom du ministère ou structure"}
               <input
                 value={paiement.fullName}
@@ -426,7 +422,7 @@ const StepOne = ({ nextStep, prevStep, paiement, setPaiement,setCustumErr,custum
                 name="fullName"
                 key="fullName"
                 placeholder={paiement.typeClient === "Entreprise Publique"? "Nom de l'entreprise"
-                    : paiement.typeClient === 'Particulier' ? "Prénom et Nom de la Personne":paiement.typeClient === 'Gouvernement' && 'Nom du ministère ou structure'
+                    : paiement.typeClient === 'Gouvernement' && 'Nom du ministère ou structure'
                 }
                 id="fullName"
                 {...register("fullName", {

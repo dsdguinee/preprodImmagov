@@ -12,15 +12,14 @@ import { loadingState, useAtomState } from "../../store/atoms";
 import Api from "../../services/Api";
 
 const MONTANT_PLAQUE = 350000; // plaques EP et VA
+// Seuls les organismes de l'État paient : il n'y a plus de client « Particulier »
 const TYPES_CLIENT = [
-  { value: "Particulier", label: "Particulier", hint: "Personne physique" },
   { value: "Entreprise Publique", label: "Entreprise Publique", hint: "NIF obligatoire" },
   { value: "Gouvernement", label: "Gouvernement", hint: "Ministère, Présidence" },
 ];
 // Type de client choisi dans une liste d'organismes (catégorie de la liste SIPIM)
 const CATEGORIE_ORGANISME = { Gouvernement: "Ministère", "Entreprise Publique": "Entreprise Publique" };
 const LIBELLE_NOM = {
-  Particulier: ["Prénom et nom", "Prénom et nom de la personne"],
   "Entreprise Publique": ["Entreprise publique", "Choisir l'entreprise publique"],
   Gouvernement: ["Ministère / institution", "Choisir le ministère"],
 };
@@ -332,7 +331,7 @@ const Payment = () => {
     }
   };
 
-  const [libelleNom, placeholderNom] = LIBELLE_NOM[p.typeClient] || LIBELLE_NOM.Particulier;
+  const [libelleNom, placeholderNom] = LIBELLE_NOM[p.typeClient] || ["Organisme", "Choisissez d'abord le type de client"];
   const erreurVisible = (champ) => touches[champ] && erreursChamps[champ];
 
   return (
@@ -360,9 +359,9 @@ const Payment = () => {
                     {ministeres.map((m) => <option key={m.ministere_id} value={m.ministere_id}>{m.nom}</option>)}
                   </select>
                 ) : (
-                  <input id="fullName" value={p.fullName} placeholder={placeholderNom} autoComplete="off"
-                    onChange={(e) => maj({ fullName: e.target.value.toUpperCase() })} onBlur={() => toucher("fullName")}
-                    aria-invalid={!!erreurVisible("fullName")} />
+                  <select id="fullName" value="" disabled>
+                    <option value="">{placeholderNom}</option>
+                  </select>
                 )}
               </Field>
               <Field label="Téléphone" htmlFor="tel" erreur={erreurVisible("tel")}>

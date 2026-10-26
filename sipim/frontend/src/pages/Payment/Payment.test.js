@@ -17,6 +17,17 @@ const elementsData = {
   autorisations: [],
 };
 const privileges = [{ privilege_id: 22, privilege: "Paiement EP" }];
+// Organismes proposés au client (GET /ministere/all)
+const ministeres = [
+  { ministere_id: 7, nom: "MINISTÈRE DES TRANSPORTS", categorie: "Ministère" },
+  { ministere_id: 9, nom: "ÉLECTRICITÉ DE GUINÉE (EDG)", categorie: "Entreprise Publique" },
+];
+// Client « Gouvernement » : le ministère est choisi dans la liste
+const choisirMinistere = async () => {
+  fireEvent.click(screen.getByLabelText(/Gouvernement/));
+  await screen.findByRole("option", { name: "MINISTÈRE DES TRANSPORTS" });
+  fireEvent.change(screen.getByLabelText("Ministère / institution"), { target: { value: "7" } });
+};
 
 // API simulée : aucun paiement existant pour le châssis, enregistrement accepté.
 // Les implémentations sont posées dans beforeEach car CRA réinitialise les mocks (resetMocks).
@@ -27,7 +38,7 @@ jest.mock("react-router-dom", () => ({ ...jest.requireActual("react-router-dom")
 
 beforeEach(() => {
   mockApiData.mockImplementation((methode) =>
-    Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 501 } } : { status: 200, payment: [] })
+    Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 501 } } : { status: 200, payment: [], ministeres })
   );
   render(
     <MemoryRouter>
@@ -41,6 +52,12 @@ beforeEach(() => {
 });
 
 describe("Formulaire de nouveau paiement", () => {
+  it("type de client : uniquement Entreprise Publique et Gouvernement", () => {
+    expect(screen.getByLabelText(/Entreprise Publique/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Gouvernement/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Particulier/)).not.toBeInTheDocument();
+  });
+
   it("affiche les trois sections et le récapitulatif", () => {
     expect(screen.getByRole("heading", { name: "Client" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Véhicule" })).toBeInTheDocument();
@@ -65,8 +82,7 @@ describe("Formulaire de nouveau paiement", () => {
   });
 
   it("envoie les mêmes champs que l'ancien formulaire puis ouvre le reçu", async () => {
-    fireEvent.click(screen.getByLabelText(/Particulier/));
-    fireEvent.change(screen.getByLabelText("Prénom et nom"), { target: { value: "mamadou diallo" } });
+    await choisirMinistere();
     fireEvent.change(screen.getByLabelText("Téléphone"), { target: { value: "622451890" } });
     fireEvent.change(screen.getByLabelText("Numéro de châssis"), { target: { value: "vf1rfb00x62345678" } });
     fireEvent.click(screen.getByLabelText(/Vehicules legers/));
@@ -83,7 +99,7 @@ describe("Formulaire de nouveau paiement", () => {
     expect(url).toBe("/paiement/new");
     const envoye = Object.fromEntries(formData.entries());
     expect(envoye).toMatchObject({
-      typeClient: "Particulier", fullName: "MAMADOU DIALLO", tel: "622451890", chassis: "VF1RFB00X62345678",
+      typeClient: "Gouvernement", fullName: "MINISTÈRE DES TRANSPORTS", ministere_id: "7", tel: "622451890", chassis: "VF1RFB00X62345678",
       modeExp: "Personnel", modeImma: "1", categorieCg: "2", typeCg: "4", typeVignette: "2", autorisation_id: "0",
       pf: "9", isEP: "true", isVA: "false", isIT: "false", document: "EP", agence_id: "1", commune_id: "1",
     });
@@ -107,7 +123,7 @@ describe("Formulaire de nouveau paiement", () => {
   describe("Châssis déjà immatriculé ou opération en cours", () => {
     const historique = (payment) => {
       mockApiData.mockImplementation((methode) =>
-        Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 503 } } : { status: 200, payment }));
+        Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 503 } } : { status: 200, payment, ministeres }));
       const chassis = screen.getByLabelText("Numéro de châssis");
       fireEvent.change(chassis, { target: { value: "jtmhv02j104242881" } });
       fireEvent.blur(chassis);
@@ -122,8 +138,7 @@ describe("Formulaire de nouveau paiement", () => {
       expect(screen.getByLabelText("Mutation")).toBeInTheDocument();
       expect(screen.getByLabelText("Autres")).toBeChecked();
 
-      fireEvent.click(screen.getByLabelText(/Particulier/));
-      fireEvent.change(screen.getByLabelText("Prénom et nom"), { target: { value: "mamadou diallo" } });
+      await choisirMinistere();
       fireEvent.change(screen.getByLabelText("Téléphone"), { target: { value: "622451890" } });
       // Catégorie et puissance fiscale reprises : seule la vignette de 13 à 19 CV est proposée
       expect(screen.getByText(/Puissance fiscale : 15 CV/)).toBeInTheDocument();
@@ -165,9 +180,8 @@ describe("Formulaire de nouveau paiement", () => {
       paiement_id: 1, reference: "REFIMMAT", chassis: "JTMHV02J104242881", fullName: "ANCIEN PROPRIO", categorie_id: 2, nomCategorie: "Vehicules legers",
       modeImma: 2, type_plaque: "EP", numero_immatriculation: "EP-1234-A", montantMutation: 1200000, montantMinReforme: 500000,
     };
-    const remplirClient = () => {
-      fireEvent.click(screen.getByLabelText(/Particulier/));
-      fireEvent.change(screen.getByLabelText("Prénom et nom"), { target: { value: "nouveau proprio" } });
+    const remplirClient = async () => {
+      await choisirMinistere();
       fireEvent.change(screen.getByLabelText("Téléphone"), { target: { value: "622451890" } });
     };
     const saisirChassis = (vehicule) => {
@@ -175,7 +189,7 @@ describe("Formulaire de nouveau paiement", () => {
         if (url.startsWith("/paiement/vehicule-utilise/"))
           return Promise.resolve(vehicule ? { status: 200, vehicule }
             : { status: 404, messages: { numChassis: ["Ce châssis n'a pas encore été utilisé pour une immatriculation ou une réimmatriculation."] } });
-        return Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 502 } } : { status: 200, payment: [] });
+        return Promise.resolve(methode === "post" ? { status: 200, data: { paiement_id: 502 } } : { status: 200, payment: [], ministeres });
       });
       const chassis = screen.getByLabelText("Numéro de châssis");
       fireEvent.change(chassis, { target: { value: "jtmhv02j104242881" } });
@@ -190,7 +204,7 @@ describe("Formulaire de nouveau paiement", () => {
     });
 
     it("facture la mutation EP au prix de la carte grise, sans frais ni plaque", async () => {
-      remplirClient();
+      await remplirClient();
       fireEvent.click(screen.getByLabelText("Mutation"));
       saisirChassis(VEHICULE_EP);
       expect(await screen.findByText(/Véhicule immatriculé · plaque EP/)).toBeInTheDocument();
@@ -205,12 +219,12 @@ describe("Formulaire de nouveau paiement", () => {
       const [, url, formData] = mockApiData.mock.calls.find(([m]) => m === "post");
       expect(url).toBe("/paiement/operation-vehicule");
       expect(Object.fromEntries(formData.entries())).toMatchObject({
-        document: "mutation", chassis: "JTMHV02J104242881", typeClient: "Particulier", fullName: "NOUVEAU PROPRIO", tel: "622451890",
+        document: "mutation", chassis: "JTMHV02J104242881", typeClient: "Gouvernement", fullName: "MINISTÈRE DES TRANSPORTS", ministere_id: "7", tel: "622451890",
       });
     });
 
     it("exige un montant de réforme d'au moins 500 000 GNF", async () => {
-      remplirClient();
+      await remplirClient();
       fireEvent.click(screen.getByLabelText("Réforme"));
       saisirChassis(VEHICULE_EP);
       const montant = await screen.findByLabelText("Montant de la réforme (GNF)");

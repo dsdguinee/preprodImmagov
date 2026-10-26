@@ -50,6 +50,9 @@ class PaiementController extends BaseController
        }
        return $vignetteCode;
    }
+    // Types de client acceptés au paiement : uniquement les organismes de l'État (plus de « Particulier »)
+    const TYPES_CLIENT = ['Entreprise Publique', 'Gouvernement'];
+
     // Type de client => catégorie de l'organisme à choisir dans la liste, et libellé des messages
     const ORGANISMES_CLIENT = [
         'Gouvernement' => ['Ministère', 'le ministère'],
@@ -87,6 +90,7 @@ class PaiementController extends BaseController
                "autorisation_id.required" => "Veuillez selectionner l'autorisation du Transport.",
                "typeClient.required" => "Veuillez selectionner le type de Client.",
                "typeClient.not_in" => "Veuillez selectionner le type de Client.",
+               "typeClient.in" => "Type de client inconnu (Entreprise Publique ou Gouvernement).",
                "categorieCg.required" => "Veuillez selectionner la categorie du vehicule.",
                "modeExp.required" => "Le mode d'usage est obligatoire(Personnel ou Transport).",
                "modeExp.not_in" => "Le mode d'usage est obligatoire(Personnel ou Transport).",
@@ -152,7 +156,7 @@ class PaiementController extends BaseController
              "autorisation_id" => ['nullable',"not_in:''",],
              "categorieCg" => "required|not_in:0|exists:categories,categorie_id",
              "cu" => ["nullable","min:1"],
-             "typeClient" => ["required","not_in:''"],
+             "typeClient" => ["required", "in:".implode(',', self::TYPES_CLIENT)],
              "fullName" => [new TypeClient($input['typeClient'])],
              "chassis" => $reglesChassis,
              "modeExp" => ["required","not_in:''"],
@@ -1113,7 +1117,7 @@ class PaiementController extends BaseController
             "document.in" => "Opération inconnue.",
             "chassis.required" => "Le numéro de châssis est obligatoire.",
             "typeClient.required" => "Veuillez selectionner le type de client.",
-            "typeClient.in" => "Type de client inconnu.",
+            "typeClient.in" => "Type de client inconnu (Entreprise Publique ou Gouvernement).",
             "tel.required" => "Le numéro de téléphone est obligatoire.",
             "tel.regex" => "Le numéro de téléphone compte 9 chiffres et commence par 6.",
             "montant_operation.required" => "Le montant de la réforme est obligatoire.",
@@ -1123,7 +1127,7 @@ class PaiementController extends BaseController
         $validator = Validator::make($input, [
             "document" => ["required", "in:".implode(',', self::OPERATIONS_VEHICULE)],
             "chassis" => ["required", "string", "min:10", "max:25"],
-            "typeClient" => ["required", "in:Particulier,Entreprise Publique,Gouvernement"],
+            "typeClient" => ["required", "in:".implode(',', self::TYPES_CLIENT)],
             "fullName" => [new TypeClient($input['typeClient'] ?? '')],
             "tel" => ["required", "regex:/^6\\d{8}$/"],
             "nif" => [new CheckNif($input['typeClient'] ?? '')],
