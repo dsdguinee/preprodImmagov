@@ -9,6 +9,7 @@ import Spinner from "../Spinner/Spinner";
 import { mutationDepuisPaiement } from "../../services/immatriculation.service";
 import { getPaysByID } from "../../utils/helper/functions";
 import HistoriqueVehicule from "./HistoriqueVehicule";
+import { organismeDeMemeNom, organismesSimilaires } from "../../utils/organismes";
 
 /*
  * Nouvelle immatriculation avec une référence de MUTATION (SIPIM) :
@@ -98,6 +99,19 @@ export const MutationAffectation = ({ immatriculation, setImmatriculation, handl
     .sort((a, b) => (a.categorie === b.categorie ? a.nom.localeCompare(b.nom, "fr") : a.categorie === "Ministère" ? -1 : 1)),
   [organismes, d.minister_id]);
   const categorieActuelle = organismes.find((m) => m.ministere_id == d.minister_id)?.categorie;
+  // Nouvel organisme choisi au paiement SIPIM : même nom (accents, casse, espaces ignorés) => sélectionné d'office ;
+  // sinon organismes de nom proche proposés (la mutation exige un organisme existant)
+  const nomSipim = (immatriculation.ministereSipim || "").trim();
+  const correspondance = useMemo(() => (nomSipim ? organismeDeMemeNom(nomSipim, organismes) : null), [nomSipim, organismes]);
+  const sipimEstActuel = !!correspondance && correspondance.ministere_id == d.minister_id;
+  const prochesSipim = useMemo(() => (nomSipim && !correspondance ? organismesSimilaires(nomSipim, ministeres) : []),
+    [nomSipim, correspondance, ministeres]);
+  const choisir = (org) => { setErreur(""); setImmatriculation((prev) => ({ ...prev, ministere: String(org.ministere_id), direction: 0 })); };
+  useEffect(() => {
+    if (correspondance && !sipimEstActuel && (!immatriculation.ministere || immatriculation.ministere == 0)) choisir(correspondance);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [correspondance, sipimEstActuel]);
+  const surCorrespondance = !!correspondance && !sipimEstActuel && String(immatriculation.ministere) === String(correspondance.ministere_id);
   const directions = toutesDirections(immatriculation).filter((x) => x.ministere_id == immatriculation.ministere);
   const valide = !!immatriculation.ministere && immatriculation.ministere != 0;
   useEffect(() => { setStepChk({ ...stepChk, step3: valide, step4: valide }); }, [valide]);
@@ -119,6 +133,27 @@ export const MutationAffectation = ({ immatriculation, setImmatriculation, handl
           <div><span>Direction actuelle</span><strong>{ou(d.direction)}</strong></div>
           {categorieActuelle && <div><span>Catégorie</span><strong>{libelleCategorie(categorieActuelle)}</strong></div>}
         </div>
+        {nomSipim && (
+          surCorrespondance ? (
+            <div className="immat-alert immat-alert--info" role="status">
+              <span>Nouvel organisme présélectionné d'après le paiement SIPIM (<strong>{nomSipim}</strong>). Si ce n'est pas le bon, choisissez-en un autre dans la liste.</span>
+            </div>
+          ) : sipimEstActuel ? (
+            <div className="immat-alert immat-alert--warning" role="status">
+              <span>Le paiement SIPIM indique « {nomSipim} », qui est déjà l'organisme actuel du véhicule : choisissez le nouvel organisme.</span>
+            </div>
+          ) : !correspondance && (!immatriculation.ministere || immatriculation.ministere == 0) ? (
+            <div className="immat-suggest" role="status">
+              <span className="immat-suggest__title">Le paiement SIPIM indique « {nomSipim} », introuvable tel quel dans immagov.{prochesSipim.length > 0 ? " Correspond-il à :" : " Choisissez l'organisme dans la liste."}</span>
+              {prochesSipim.map((org) => (
+                <button key={org.ministere_id} type="button" className="immat-suggest__item" onClick={() => choisir(org)}>
+                  <span>{org.nom}</span>
+                  <span className="immat-suggest__action">Choisir cet organisme</span>
+                </button>
+              ))}
+            </div>
+          ) : null
+        )}
         <div className="immat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           <Field label="Nouvel organisme" required error={erreur}>
             <SearchSelect id="ministere-mutation" name="ministere" value={immatriculation.ministere}

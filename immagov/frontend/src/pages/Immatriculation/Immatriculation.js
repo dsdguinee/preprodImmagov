@@ -142,6 +142,8 @@ const Immatriculation = () => {
             reforme:reforme ? {dossier,proprietaire:proprietaireVide()} : null,
             numChassie:dossier.numChassie,modeImmatriculation:dossier.modeImmatriculation,
             typeOrganisme:resp.data.paiement.typeOrganisme || dossier.typeOrganisme || '',
+            // Nouvel organisme choisi au paiement SIPIM : présélectionné à l'étape Nouvelle affectation
+            ministereSipim:resp.data.paiement.ministere || '',
             ministere:0,direction:0,image4:''});
           setStepChk({...stepChk,step1:true,step2:true,step3:false,step4:false}); setStep(step + 1);
         }

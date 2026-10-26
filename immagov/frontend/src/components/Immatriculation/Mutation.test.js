@@ -22,8 +22,8 @@ const base = {
   },
 };
 
-const Affectation = ({ onNext }) => {
-  const [imm, setImm] = useState(base);
+const Affectation = ({ onNext, initial = base }) => {
+  const [imm, setImm] = useState(initial);
   const [chk, setChk] = useState({});
   return <MutationAffectation immatriculation={imm} setImmatriculation={setImm} handleNextStep={onNext} handlePrevStep={() => {}} stepChk={chk} setStepChk={setChk} />;
 };
@@ -44,6 +44,23 @@ test("nouvelle affectation : tous les organismes sauf l'actuel, avec leur catég
   fireEvent.click(screen.getByRole("option", { name: "CBG · Entreprise publique" }));
   fireEvent.click(screen.getByRole("button", { name: "Continuer" }));
   expect(suivant).toHaveBeenCalled();
+});
+
+test("nouvel organisme choisi au paiement SIPIM : sélectionné d'office (accents et casse ignorés)", () => {
+  render(<Affectation onNext={jest.fn()} initial={{ ...base, ministereSipim: "MINISTERE DE LA SANTE" }} />);
+  expect(screen.getByText(/présélectionné d'après le paiement SIPIM/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Ministère de la Santé · Ministère \/ institution/ })).toBeInTheDocument();
+});
+
+test("organisme SIPIM déjà actuel ou introuvable : rien n'est sélectionné", () => {
+  const { unmount } = render(<Affectation onNext={jest.fn()} initial={{ ...base, ministereSipim: "Ministere des mines" }} />);
+  expect(screen.getByText(/déjà l'organisme actuel du véhicule/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Sélectionner le nouvel organisme" })).toBeInTheDocument();
+  unmount();
+  render(<Affectation onNext={jest.fn()} initial={{ ...base, ministereSipim: "MINISTÈRE DE LA SANTÉ PUBLIQUE" }} />);
+  expect(screen.getByText(/introuvable tel quel dans immagov/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: /Ministère de la Santé.*Choisir cet organisme/ }));
+  expect(screen.queryByText(/introuvable tel quel/)).not.toBeInTheDocument();
 });
 
 test("envoi de la mutation : service appelé avec le dossier repris, puis fin du parcours", async () => {
