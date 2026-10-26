@@ -9,6 +9,7 @@ use App\Models\Ministere;
 use \App\Models\modelVoiture;
 use App\Models\Rejet;
 use App\Models\Reservation;
+use App\Rules\AnneeFabricationAvantCirculation;
 use App\Rules\Immatriculation\CheckImmatriculationExist;
 use App\Rules\Immatriculation\CheckMinistereExist;
 use App\Rules\Immatriculation\CheckPaiement;
@@ -269,7 +270,7 @@ class ImmatriculationController extends BaseController
                         'nbPorte' => 'required|numeric',
                         'kilometrage' => 'required|numeric',
                         'cylindre' => 'required|numeric|digits_between:1,25',
-                        'annee' => 'required|numeric',
+                        'annee' => ['required', 'numeric', new AnneeFabricationAvantCirculation($input['dateP'] ?? null)],
                         'dateP' => 'nullable|date_format:Y-m-d',
                         'energie' => 'required|not_in:0',
                         'idpays' => 'required|not_in:0',
@@ -457,7 +458,7 @@ class ImmatriculationController extends BaseController
                   'nbPorte' => 'required|numeric',
                   'kilometrage' => 'required|numeric',
                   'cylindre' => 'required|numeric|digits_between:1,25',
-                  'annee' => 'required|numeric',
+                  'annee' => ['required', 'numeric', new AnneeFabricationAvantCirculation($input['dateP'] ?? null)],
                   'dateP' => 'nullable|date_format:Y-m-d',
                   'energie' => 'required|not_in:0',
                   'idpays' => 'required|not_in:0',

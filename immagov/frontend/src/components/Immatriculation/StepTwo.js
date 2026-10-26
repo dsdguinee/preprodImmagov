@@ -7,6 +7,7 @@ import { colors } from "../../utils/colors";
 import { getPays ,isEmpty, isDateValid,checkValid,validateDate,estReimmatriculation} from '../../utils/helper/functions';
 import { carrosseriesDuType } from "../../services/utils/carosserie";
 import Field from "./ui/Field";
+import { anneeCirculation, anneeFabricationValide } from "../../utils/vehiculeDates";
 import Input from "../ui/Input/Input";
 import FormSection from "./ui/FormSection";
 import SegmentedControl from "./ui/SegmentedControl";
@@ -222,9 +223,11 @@ const StepTwo = ({ handleNextStep, handlePrevStep,immatriculation,setImmatricula
                     <Field label="Année de fabrication" required error={
                         errors.annee?.type === "required" ? "L'année est obligatoire."
                         : errors.annee?.type === "min" ? "L'année minimale est 1900."
-                        : errors.annee?.type === "max" ? `L'année maximale est ${currentYear}.` : ""}>
+                        : errors.annee?.type === "max" ? `L'année maximale est ${currentYear}.`
+                        : errors.annee?.type === "avantCirculation" ? `L'année de fabrication ne peut pas dépasser celle de la 1re mise en circulation (${anneeCirculation(immatriculation.dateP)}).` : ""}>
                         <Input invalid={!!errors.annee} value={immatriculation.annee} type="number" name="annee" id="annee" placeholder="Année"
-                            {...register('annee', { onChange: (e) => handleInput(e), required:true,min:1900,max:currentYear })}
+                            {...register('annee', { onChange: (e) => handleInput(e), required:true,min:1900,max:currentYear,
+                                validate: { avantCirculation: (v) => anneeFabricationValide(v, immatriculation.dateP) } })}
                         />
                     </Field>
                     <Field label="1re mise en circulation" required error={errors.dateP && "La date choisie n'est pas valide."}>
