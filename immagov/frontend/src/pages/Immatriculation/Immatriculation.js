@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom";
 import moment from "moment";
 import { estReimmatriculation } from "../../utils/helper/functions";
 import { getPaiementSipim, getReservationList, dossierParChassis } from "../../services/immatriculation.service";
+import { modeReservation } from "../../utils/reservations";
 import { MutationVehicule, MutationAffectation, MutationSoumission } from "../../components/Immatriculation/Mutation";
 import { ReformeVehicule, ReformeProprietaire, ReformePiece, ReformeSoumission, proprietaireVide } from "../../components/Immatriculation/Reforme";
 import ImmatStepper from "../../components/Immatriculation/ui/ImmatStepper";
@@ -118,6 +119,12 @@ const Immatriculation = () => {
      if(status === 200 ) setReservationListe(ReserationList);
     setIsLoading(false);
    }
+   // Réservation choisie à l'étape 1 et compatibilité avec le type de plaque payé (EP / VA)
+   const reservationChoisie = () => reservationListe.find((r) => String(r.reservation_id) === String(immatriculation.reservation_id));
+   const reservationIncompatible = (paiementSipim) => {
+     const reservation = reservationChoisie();
+     return !!reservation && modeReservation(reservation) !== String(paiementSipim?.type_plaque || '').trim().toUpperCase();
+   };
    const getPaiement = async (reference) => {
     setErreurs('');setIsLoading(true);setPaiement('');setStepChk({...stepChk,step1:false});
       // Le backend immagov interroge SIPIM avec la cle API : on n'envoie que la reference
@@ -151,6 +158,13 @@ const Immatriculation = () => {
       // Immatriculation / réimmatriculation : impossible avec une référence payée sans type de plaque
       else if(resp.data.status === 200 && resp.data?.paiement?.status === 'Validé' && !dejaUtilisee && !String(resp.data.paiement.type_plaque || '').trim()){
         setErreurs("Cette référence n'a pas de type de plaque : l'immatriculation et la réimmatriculation ne sont pas possibles. Le paiement doit inclure une plaque.");
+        setImmatriculation({...immatriculation,isReferenceValid:false,mutation:null,reforme:null});
+        setStepChk({...stepChk,step1:false,step2:false,step3:false,step4:false,step5:false});
+      }
+      // Réservation EP avec une référence VA (ou l'inverse) : impossible
+      else if(resp.data.status === 200 && resp.data?.paiement?.status === 'Validé' && !dejaUtilisee && reservationIncompatible(resp.data.paiement)){
+        const reservation = reservationChoisie();
+        setErreurs(`La réservation « ${reservation.nomReservation} » est de type ${modeReservation(reservation)} : elle ne peut pas être utilisée avec une référence de paiement ${String(resp.data.paiement.type_plaque).trim().toUpperCase()}.`);
         setImmatriculation({...immatriculation,isReferenceValid:false,mutation:null,reforme:null});
         setStepChk({...stepChk,step1:false,step2:false,step3:false,step4:false,step5:false});
       }

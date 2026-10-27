@@ -476,7 +476,7 @@ class ImmatriculationController extends BaseController
                   'couleur' => 'required|not_in:0',
                   'acquisition' => 'required|not_in:0',
                   "pieceJointe" => "required|mimes:pdf,jpg,jpeg,png|max:10240",
-                  "reservation_id" => [new ReservationModeImmatriculation($input['modeImmatriculation'])]
+                  "reservation_id" => [new ReservationModeImmatriculation($input['modeImmatriculation'] ?? null, $input['paiementReference'] ?? null)]
                 ],$messages);
 
                 if ($validator->fails()) {

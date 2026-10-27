@@ -3,50 +3,36 @@
 namespace App\Rules\Reservation;
 
 use App\Models\Reservation;
-use Illuminate\Contracts\Validation\Rule;
+use App\Services\SipimService;
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class ReservationModeImmatriculation implements Rule
+/**
+ * Une réservation de numéros EP ne s'utilise qu'avec une référence de paiement EP, et une réservation VA
+ * qu'avec une référence VA. Le type de référence est celui payé dans SIPIM (type_plaque) : le mode envoyé
+ * par le formulaire ne sert que si SIPIM ne répond pas (la référence est alors refusée par ailleurs).
+ */
+class ReservationModeImmatriculation implements ValidationRule
 {
-    /**
-     * Create a new rule instance.
-     *
-     * @return void
-     */
-    public $modeImmatriculation;
-    public $msg;
-    public function __construct($modeImmatriculation)
+    public function __construct(private $modeImmatriculation, private $paiementReference = null) {}
+
+    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $this->modeImmatriculation = $modeImmatriculation;
+        if (strlen((string) $value) === 0) return;
+        $reservation = Reservation::find($value);
+        if (!$reservation) return;
+
+        $modeReservation = strtoupper(trim((string) $reservation->modeImmatriculation));
+        $modeReference = $this->typePlaquePaye() ?: strtoupper(trim((string) $this->modeImmatriculation));
+        if ($modeReference !== '' && $modeReservation !== $modeReference)
+            $fail("La réservation « {$reservation->nomReservation} » est de type {$modeReservation} : elle ne peut pas être utilisée avec une référence de paiement {$modeReference}.");
     }
 
-    /**
-     * Determine if the validation rule passes.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @return bool
-     */
-    public function passes($attribute, $value)
+    // Type de plaque payé pour la référence (EP, VA…), lu dans SIPIM
+    private function typePlaquePaye(): string
     {
-        if(strlen($value) != 0){
-            $reservation = Reservation::find($value);
-            if($reservation){
-               if(trim($reservation->modeImmatriculation) != trim($this->modeImmatriculation)){
-                  $this->msg = "Le mode d'immatriculation que vous aviez choisi ne correspondant pas à celui de la reservation.";
-                  return false;
-               }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Get the validation error message.
-     *
-     * @return string
-     */
-    public function message()
-    {
-        return $this->msg;
+        if (!$this->paiementReference) return '';
+        $reponse = SipimService::getPaiement($this->paiementReference);
+        return strtoupper(trim((string) ($reponse['paiement']['type_plaque'] ?? '')));
     }
 }

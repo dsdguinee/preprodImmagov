@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import Field from "./ui/Field";
 import Input from "../ui/Input/Input";
 import StepActions from "./ui/StepActions";
+import { modeReservation } from "../../utils/reservations";
 
 // Erreur renvoyée par la recherche : texte, ou objet { champ: [messages] }
 const texteErreur = (erreurs) => {
@@ -38,6 +39,7 @@ const StepOne = ({ handleNextStep, immatriculation, setImmatriculation, erreurs,
       : "";
   const message = texteErreur(erreurs);
   const valide = immatriculation.isReferenceValid && paiement;
+  const typePlaque = String(paiement?.type_plaque || "").trim().toUpperCase();
 
   return (
     <form onSubmit={handleSubmit(handleNextStep)}>
@@ -66,7 +68,11 @@ const StepOne = ({ handleNextStep, immatriculation, setImmatriculation, erreurs,
             <select name="reservation_id" onChange={handleInput} value={immatriculation.reservation_id}>
               <option value="">Aucune réservation</option>
               {reservationListe?.length > 0 && reservationListe.map((reservation) => (
-                <option value={reservation.reservation_id} key={reservation.reservation_id}>{reservation.nomReservation}</option>
+                // Type de la réservation affiché ; une fois la référence connue, seules celles de son type de plaque sont choisissables
+                <option value={reservation.reservation_id} key={reservation.reservation_id}
+                  disabled={!!typePlaque && modeReservation(reservation) !== typePlaque}>
+                  {reservation.nomReservation} ({modeReservation(reservation)})
+                </option>
               ))}
             </select>
           </Field>
